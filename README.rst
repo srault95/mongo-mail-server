@@ -601,6 +601,28 @@ Size of messages
 
 Use MMS_DATA_SIZE_LIMIT in environment or --data-size-limit
 
+Open Message with Python
+------------------------
+
+.. code:: python
+
+    >>> import os, zlib, base64
+    >>> from pprint import pprint as pp
+    >>> from email.parser import Parser, HeaderParser
+    >>> from pymongo import MongoClient
+    >>> from gridfs import GridFS
+    >>> client = MongoClient(os.environ.get('MMS_MONGODB_URI'))
+    >>> db = client['message']
+    >>> col = db['message']
+    >>> doc = col.find_one() 
+    >>> fs = GridFS(db)
+    >>> msg_base64 = fs.get(doc['message']).read()
+    >>> msg_string = zlib.decompress(base64.b64decode(msg_base64))
+    >>> msg = Parser().parsestr(msg_string)
+    >>> msg
+    <email.message.Message instance at 0x7ff5e4054560>    
+
+
 TODO
 ====
 

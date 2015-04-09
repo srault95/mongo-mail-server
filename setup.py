@@ -21,7 +21,7 @@ setup(
     long_description=get_readme(),
     author='Stéphane RAULT',
     author_email='stephane.rault@radicalspam.org',
-    license='MIT',
+    license='BSD',
     classifiers=[
         'Topic :: Communications :: Email',
         'Topic :: Communications :: Email :: Mail Transport Agents',
@@ -30,7 +30,7 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
-        'License :: OSI Approved',
+        'License :: OSI Approved :: BSD License',
         'Intended Audience :: Developers',
         'Intended Audience :: System Administrators'
     ],

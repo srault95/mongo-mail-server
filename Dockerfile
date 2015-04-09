@@ -19,7 +19,6 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
   build-essential \
   ca-certificates \
   git \
-  wget \
   curl \
   language-pack-en \
   python-dev \
