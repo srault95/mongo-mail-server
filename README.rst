@@ -2,9 +2,9 @@
 Mongo Mail Server
 =================
 
-**Gevent SMTP Server based on Gsmtpd_**
+**Gevent SMTP Server based on** Gsmtpd_
 
-|Build Status| |pip downloads|
+|Build Status| |pypi downloads| |pypi dev_status| |pypi version| |pypi licence| |pypi py_versions|
 
 **Features:**
 
@@ -359,10 +359,8 @@ Installation
 
 .. code:: bash
 
-    $ apt-get install python-gevent
+    $ pip install mongo-mail-server
 
-    $ pip install https://github.com/srault95/mongo-mail-server/tarball/master
-    
     $ mongo-mail-server --help 
 
 
@@ -663,10 +661,23 @@ Ideas
    :target: https://travis-ci.org/srault95/mongo-mail-server
    :alt: Travis Build Status
 
-.. |pip downloads| image:: https://pypip.in/d/mongo-mail-server/badge.png
+.. |pypi downloads| image:: https://pypip.in/download/mongo-mail-server/badge.svg
     :target: https://pypi.python.org/pypi/mongo-mail-server
     :alt: Number of PyPI downloads
+    
+.. |pypi version| image:: https://pypip.in/version/mongo-mail-server/badge.svg
+    :target: https://pypi.python.org/pypi/mongo-mail-server
+    :alt: Latest Version    
 
+.. |pypi licence| image:: https://pypip.in/license/mongo-mail-server/badge.svg
+    :target: https://pypi.python.org/pypi/mongo-mail-server
+    :alt: License
 
+.. |pypi py_versions| image:: https://pypip.in/py_versions/mongo-mail-server/badge.svg
+    :target: https://pypi.python.org/pypi/mongo-mail-server
+    :alt: Supported Python versions
 
- 
+.. |pypi dev_status| image:: https://pypip.in/status/mongo-mail-server/badge.svg
+    :target: https://pypi.python.org/pypi/mongo-mail-server
+    :alt: Development Status        
+    
