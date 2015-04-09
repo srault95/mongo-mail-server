@@ -24,7 +24,7 @@ Quarantine mode example
 
 **Mode for quarantine or statistics only**
 
-.. image:: mongo-mail-quarantine.jpg
+.. image:: https://raw.githubusercontent.com/srault95/mongo-mail-server/master/mongo-mail-quarantine.jpg
    :alt: Mongo Mail Quarantine schema
    :align: center
 
@@ -38,7 +38,7 @@ Proxy mode example
 
 **Mode for statistics or honey pot**
 
-.. image:: mongo-mail-proxy.jpg
+.. image:: https://raw.githubusercontent.com/srault95/mongo-mail-server/master/mongo-mail-proxy.jpg
    :alt: Mongo Mail Proxy schema
    :align: center
    
@@ -50,7 +50,7 @@ Filter mode example
 
 **Mode for spam/virus filtering and statistics**
 
-.. image:: mongo-mail-filter.jpg
+.. image:: https://raw.githubusercontent.com/srault95/mongo-mail-server/master/mongo-mail-filter.jpg
    :alt: Mongo Mail Filter schema
    :align: center
    
