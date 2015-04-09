@@ -1,5 +1,3 @@
-# docker pull ubuntu:12.04
-
 services:
   - mongodb
 
@@ -13,35 +11,22 @@ env:
   - PYMONGO=3.0
   
 before_install:
- #- "travis_retry sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10"
- #- "echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | sudo tee /etc/apt/sources.list.d/mongodb.list"
- #- "travis_retry sudo apt-get update"
- #- "travis_retry sudo apt-get install mongodb-org-server"
- - "travis_retry sudo apt-get install -qq build-essential curl git ca-certificates language-pack-en python-dev cython python-gevent"
+ - "travis_retry sudo apt-get install -qq build-essential curl git ca-certificates language-pack-en python-dev"
  - sudo curl -k -O https://bootstrap.pypa.io/ez_setup.py && python ez_setup.py --insecure && rm -f ez_setup.py setuptools*zip
  - sudo curl -k -O https://bootstrap.pypa.io/get-pip.py && python get-pip.py && rm -f get-pip.py
  
 install:
-  - travis_retry pip install coveralls nose coverage
+  - travis_retry pip install nose
   - travis_retry pip install pymongo==$PYMONGO
   - travis_retry pip install .
 
 before_script:
   - sleep 5
-  #- mongo message_test --eval 'db.addUser("travis", "test");'
+  - mongod --version
   
 script:
-  #- travis_retry python setup.py test
-  - travis_retry nosetests -s mms_tests
-  #- coverage run --source=mongo_mail_server setup.py develop
-  #- coverage report -m
-  #- python benchmark.py
+  - travis_retry nosetests -s -v mms_tests
 
-#after_script:
-#https://pypi.python.org/pypi/coveralls/0.5
-#cherche .coveralls.yml (travis only) - https://coveralls.io/
-#- coveralls --verbose
-  
 branches:
   only:
     - master
