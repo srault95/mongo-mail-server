@@ -4,6 +4,8 @@ Mongo Mail Server
 
 **Gevent SMTP Server based on Gsmtpd**
 
+|Build Status|
+
 **Features:**
 
 - SMTP Server high performance with Gevent Coroutine_
@@ -656,4 +658,11 @@ Ideas
 .. _Clamav: http://clamav.net/
 .. _SpamAssassin: http://spamassassin.org/
 .. _Coroutine: http://en.wikipedia.org/wiki/Coroutine
+ 
+.. |Build Status| image:: https://travis-ci.org/srault95/mongo-mail-server.svg?branch=master
+   :target: https://travis-ci.org/srault95/mongo-mail-server
+   :alt: Travis Build Status
+
+
+
  
