@@ -59,7 +59,7 @@ Filter mode example
 Important Notes
 ===============
 
-- **Message is not transformed**
+- **Message is not transformed (unless in quarantine mode if MMS_REAL_RCPT=1)**
 
 - **Gross message is stored in GridFS after being compressed (zlib) and converted to base64**
 
@@ -73,7 +73,7 @@ Tested With
 - MongoDB_ 2.6.5
 - Python_ 2.7.6
 - Gevent_ 1.0
-- Pymongo_ 2.8
+- Pymongo2_8 2.8 and Pymongo_ 3.0 
 - Postfix_ 2.5.5
 - Amavisd-new_ 2.6.4
 
@@ -647,7 +647,8 @@ Ideas
 .. _Ubuntu: http://www.ubuntu.com/
 .. _Dockerfile: http://dockerfile.github.io/#/mongodb
 .. _Python: http://www.python.org/
-.. _Pymongo: http://api.mongodb.org/python/2.8/
+.. _Pymongo2_8: http://api.mongodb.org/python/2.8/
+.. _Pymongo: http://api.mongodb.org/python/current/index.html
 .. _Gevent: http://www.gevent.org/
 .. _Postfix: http://www.postfix.org
 .. _XFORWARD: http://www.postfix.org/XFORWARD_README.html

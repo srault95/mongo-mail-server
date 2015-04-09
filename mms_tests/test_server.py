@@ -6,30 +6,31 @@ import smtplib
 from email.utils import getaddresses
 
 import gevent
+import pymongo
 
-from mongo_mail_server import RecordPyMongoDBServer, RecordPyMongoDBServerProxy, compress, uncompress
+from mongo_mail_server import RecordPyMongoDBServer, compress, uncompress, PYMONGO2
 
 from . import utils
 
-HERE = os.path.abspath(os.path.dirname(__file__))
-resources = os.path.abspath(os.path.join(HERE, 'resources'))
+MSG1 = """X-Envelope-From: <sender@example.org>
+X-Envelope-To: <recipient@example.net>
+From: root (Cron Daemon)
+To: <recipient@example.net>
+Subject: Test1
+Content-Type: text/plain; charset=ASCII
+Message-Id: <20150209054755.A04D818B6@localhost>
+Date: Mon,  9 Feb 2015 05:47:55 +0000 (UTC)
+
+My message
+"""
+
 
 MSG_RCPT_NOT_FQDN = """X-Envelope-From: root
 X-Envelope-To: root
-content_filter: smtp-filter:[127.0.0.1]:14001
-message_arrival_time: Mon Feb  9 05:47:55 2015
-create_time: Mon Feb  9 05:47:55 2015
-named_attribute: rewrite_context=local
-sender_fullname: CronDaemon
-sender: clamav
-original_recipient: clamav
-recipient: clamav
-Received: by localhost (Postfix, from userid 106)
-        id A04D818B6; Mon,  9 Feb 2015 05:47:55 +0000 (UTC)
 From: root (Cron Daemon)
 To: clamav
-Subject: Cron <clamav@acb3621de6c1> [ -x /usr/sbin/clamav-unofficial-sigs ] && /usr/sbin/clamav-unofficial-sigs
-Content-Type: text/plain; charset=ANSI_X3.4-1968
+Subject: Test not fqdn
+Content-Type: text/plain; charset=ASCII
 Message-Id: <20150209054755.A04D818B6@localhost>
 Date: Mon,  9 Feb 2015 05:47:55 +0000 (UTC)
 
@@ -38,20 +39,10 @@ My message
 
 MSG_QUARANTINE_REAL_RCPT = """X-Envelope-From: <sender@example.org>
 X-Envelope-To: <real-rcpt@example.net>
-content_filter: smtp-filter:[127.0.0.1]:14001
-message_arrival_time: Mon Feb  9 05:47:55 2015
-create_time: Mon Feb  9 05:47:55 2015
-named_attribute: rewrite_context=local
-sender_fullname: CronDaemon
-sender: clamav
-original_recipient: clamav
-recipient: clamav
-Received: by localhost (Postfix, from userid 106)
-        id A04D818B6; Mon,  9 Feb 2015 05:47:55 +0000 (UTC)
 From: root (Cron Daemon)
 To: clamav
-Subject: Cron <clamav@acb3621de6c1> [ -x /usr/sbin/clamav-unofficial-sigs ] && /usr/sbin/clamav-unofficial-sigs
-Content-Type: text/plain; charset=ANSI_X3.4-1968
+Subject: Test real rcpt
+Content-Type: text/plain; charset=ASCII
 Message-Id: <20150209054755.A04D818B6@localhost>
 Date: Mon,  9 Feb 2015 05:47:55 +0000 (UTC)
 
@@ -61,39 +52,27 @@ My message
 MSG_QUARANTINE_REAL_RCPT_MULTI = """X-Envelope-From: <sender@example.org>
 X-Envelope-To: <real-rcpt1@example.net>,
         <real-rcpt2@example.net>
-content_filter: smtp-filter:[127.0.0.1]:14001
-message_arrival_time: Mon Feb  9 05:47:55 2015
-create_time: Mon Feb  9 05:47:55 2015
-named_attribute: rewrite_context=local
-sender_fullname: CronDaemon
-sender: clamav
-original_recipient: clamav
-recipient: clamav
-Received: by localhost (Postfix, from userid 106)
-        id A04D818B6; Mon,  9 Feb 2015 05:47:55 +0000 (UTC)
 From: root (Cron Daemon)
-To: clamav
-Subject: Cron <clamav@acb3621de6c1> [ -x /usr/sbin/clamav-unofficial-sigs ] && /usr/sbin/clamav-unofficial-sigs
-Content-Type: text/plain; charset=ANSI_X3.4-1968
+To: <real-rcpt1@example.net>,
+        <real-rcpt2@example.net>
+Subject: Test multi recipients
+Content-Type: text/plain; charset=ASCII
 Message-Id: <20150209054755.A04D818B6@localhost>
 Date: Mon,  9 Feb 2015 05:47:55 +0000 (UTC)
 
 My message
 """
 
-
-
 DB_NAME = "message_test"
 
 COL_NAME = "message_test"
 
 MONGODB_SETTINGS = {
-    'host': os.environ.get('RS_SMTPD_MONGODB_URI', 'mongodb://localhost'),
-    #'username': None,
-    #'password': None,
-    'use_greenlets': True,
+    'host': os.environ.get('MMS_MONGODB_URI', 'mongodb://localhost'),
     'tz_aware': True,    
-}        
+}    
+if PYMONGO2:
+    MONGODB_SETTINGS['use_greenlets'] = True
 
 @contextmanager
 def smtp_server(host=None, port=None, mongo_settings=None, timeout=10, data_size_limit=0, **kwargs):
@@ -130,15 +109,12 @@ def smtp_client(host=None, port=None, debug=False):
 def _sendmail(message=None, debug=False, timeout=10, mongo_settings=None, sleeping=None, smtp_rcpt=None, **kwargs):
 
     host, port = utils.get_free_port()
-    #mongo_client = pymongo.MongoClient(host='mongodb://localhost', **{"tz_aware":True, "use_greenlets":True})
+
     with smtp_server(host=host, port=port, mongo_settings=mongo_settings, timeout=timeout, **kwargs) as server:
 
         assert server.col.count() == 0
         
         s = smtp_client(host, port, debug=debug)
-    
-        #s.set_debuglevel(debug_level)        
-        #ret_code = s.connect(host, port)
     
         (code, msg) = s.ehlo()
         assert code == 250
@@ -165,22 +141,17 @@ def _sendmail(message=None, debug=False, timeout=10, mongo_settings=None, sleepi
         message_string = message.as_string()
         
         (code, msg) = s.mail(smtplib.quoteaddr(froms[0]), ["size=%s" % len(message_string)])
-        #(code, msg) = s.docmd('MAIL FROM:', smtplib.quoteaddr(froms[0]) )
         
-        #self.result['MAIL FROM'] = (code, msg)
         assert code == 250
         
         for recipient in recipients:
             (code, msg) = s.docmd('RCPT TO:', smtplib.quoteaddr(recipient) )
             assert code == 250
             
-        #data + message
         (code, msg) = s.data(message_string)
-        #self.result['DATA'] = (code, msg)
         assert code == 250
             
         (code, msg) = s.docmd('quit')
-        #self.result['QUIT'] = (code, msg)
         assert code == 221
         
         return server
@@ -193,24 +164,10 @@ def _mongodb_verify(message=None, col=None, fs=None, debug=False):
     
     assert doc['sender'] == smtplib.quoteaddr(froms[0])[1:-1]
     
-    #email.Message from mongo
     msg = utils.message_from_string(uncompress(fs.get(doc['message']).read()))
-
-    #for header in ["X-RS-CLIENT", "X-RS-SENDER", "X-RS-RCPT"]: 
-    #    assert header in message
 
     if debug:
         print ""    
-        #print "Subject: ", message.get('Subject')    
-        """
-        print doc['received']   #2014-11-05 06:24:38.261000+00:00
-        print doc['size']       #2222
-        print doc['sender']     #externe1@sample1.com
-        print doc['rcpt']       #['interne1@g1-domain1.com']
-        print doc['client']     #192.168.1.1
-        print doc['xforward']   #{'HELO': 'local.net', 'NAME': 'mail.local.net', 'ADDR': '192.168.1.1'}
-        print doc['server']     #127.0.0.1
-        """
         print "------------------------------------------------------------"
         print message.as_string()
         print "------------------------------------------------------------"
@@ -219,8 +176,7 @@ def _mongodb_verify(message=None, col=None, fs=None, debug=False):
         
 def test_send():
     
-    filepath = os.path.abspath(os.path.join(resources, '20070801T000001.gz'))
-    message = utils.message_from_filepath(filepath)
+    message = utils.message_from_string(MSG1)
     server = _sendmail(message=message, mongo_settings=MONGODB_SETTINGS ,debug=False)
     assert server.col.count() == 1
     doc, new_message = _mongodb_verify(message=message, col=server.col, fs=server.fs, debug=False)
@@ -260,7 +216,6 @@ def test_send_convert_real_rcpt_multi():
     header_mms_rcpt = new_message.get('X-MMS-RCPT', None)
     assert not header_mms_rcpt is None
     assert header_mms_rcpt == "<quarantine@localhost.net>"
-    
 
 def test_send_with_timeout():
 
@@ -270,8 +225,6 @@ def test_send_with_timeout():
         pass
     except Exception, err:
         pass
-        #AttributeError: 'NoneType' object has no attribute 'get_all'
-        #assert False, "Other exception"
     else:
         assert False, "Exception not raised"
     
@@ -290,8 +243,8 @@ def test_implemented_commands():
         for feature in ["xforward", "size", "help"]:
             assert feature in s.esmtp_features 
         
-def test_limit_size():
-    assert False
+#def test_limit_size():
+#    assert False, "Not Implemented"
     
         
         

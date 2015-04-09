@@ -1,15 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-'''
-Gevent SMTP Server based on https://github.com/34nm/gsmtpd
-'''
-
 __VERSION__ = "0.1.0"
 
 from gevent.monkey import patch_all
 patch_all()
 
+from pprint import pprint as pp
+import json
 import sys
 import zlib
 import base64
@@ -33,6 +31,19 @@ import gevent
 from gevent import ssl
 from gevent import socket, Timeout
 from gevent.server import StreamServer
+
+try:
+    import pymongo
+    from pymongo import MongoClient
+    from bson import ObjectId
+    HAVE_PYMONGO = True
+    if pymongo.version_tuple[0] < 3:
+        PYMONGO2 = True
+    else:
+        PYMONGO2 = False
+        
+except ImportError:
+    HAVE_PYMONGO = False
 
 from dateutil import tz
 
@@ -793,10 +804,10 @@ class RecordPyMongoDBServer(SMTPServer):
                               )
         d['message'] = message
         
-        from pprint import pprint
-        #pprint(d)
-        
-        self.col.insert(d)
+        if PYMONGO2:
+            self.col.insert(d)
+        else:
+            self.col.insert_one(d)
         
         return key 
     
@@ -1131,15 +1142,12 @@ def main_reader():
 
     MONGODB_SETTINGS = {
         'host': mongo_host,
-        'use_greenlets': True,
         'tz_aware': True,
     }        
     
-    from pprint import pprint as pp
-    import json
-    import pymongo
-    from pymongo import MongoClient
-    from bson import ObjectId 
+    if PYMONGO2:
+        MONGODB_SETTINGS['use_greenlets'] = True
+    
     client = MongoClient(**MONGODB_SETTINGS)
     
     def json_convert(obj):
@@ -1455,13 +1463,11 @@ def command_start(mode=None,
     try:
         MONGODB_SETTINGS = {
             'host': mongo_host,
-            #'username': None,
-            #'password': None,
-            'use_greenlets': True,
             'tz_aware': True,
         }        
         
-        from pymongo import MongoClient 
+        if PYMONGO2:
+            MONGODB_SETTINGS['use_greenlets'] = True
         
         client = MongoClient(**MONGODB_SETTINGS)        
         
