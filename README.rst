@@ -2,9 +2,9 @@
 Mongo Mail Server
 =================
 
-**Gevent SMTP Server based on Gsmtpd**
+**Gevent SMTP Server based on Gsmtpd_**
 
-|Build Status|
+|Build Status| |pip downloads|
 
 **Features:**
 
@@ -662,6 +662,10 @@ Ideas
 .. |Build Status| image:: https://travis-ci.org/srault95/mongo-mail-server.svg?branch=master
    :target: https://travis-ci.org/srault95/mongo-mail-server
    :alt: Travis Build Status
+
+.. |pip downloads| image:: https://pypip.in/d/mongo-mail-server/badge.png
+    :target: https://pypi.python.org/pypi/mongo-mail-server
+    :alt: Number of PyPI downloads
 
 
 
