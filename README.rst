@@ -2,13 +2,19 @@
 Mongo Mail Server
 =================
 
-**Gevent SMTP Server based on** Gsmtpd_
+**Gevent SMTP Server with MongoDB storage** 
 
 |Build Status| |pypi downloads| |pypi dev_status| |pypi version| |pypi licence| |pypi py_versions|
 
+**Demo:**
+
+- URL: http://188.165.254.60:8083
+- Login: admin@example.net
+- Password: password
+
 **Features:**
 
-- SMTP Server high performance with Gevent Coroutine_
+- SMTP Server high performance with Gevent Coroutine_ ( fork of Gsmtpd_ )
 - Postfix XFORWARD_ extension
 - Record messages in MongoDB_
 - Ability to use a custom python plugin to edit the message before recording
@@ -24,7 +30,7 @@ Quarantine mode example
 
 **Mode for quarantine or statistics only**
 
-.. image:: https://raw.githubusercontent.com/srault95/mongo-mail-server/master/mongo-mail-quarantine.jpg
+.. image:: http://espace-groupware.com/docs/mongo-mail/img/mongo-mail-quarantine.jpg
    :alt: Mongo Mail Quarantine schema
    :align: center
 
@@ -38,7 +44,7 @@ Proxy mode example
 
 **Mode for statistics or honey pot**
 
-.. image:: https://raw.githubusercontent.com/srault95/mongo-mail-server/master/mongo-mail-proxy.jpg
+.. image:: http://espace-groupware.com/docs/mongo-mail/img/mongo-mail-proxy.jpg
    :alt: Mongo Mail Proxy schema
    :align: center
    
@@ -50,7 +56,7 @@ Filter mode example
 
 **Mode for spam/virus filtering and statistics**
 
-.. image:: https://raw.githubusercontent.com/srault95/mongo-mail-server/master/mongo-mail-filter.jpg
+.. image:: http://espace-groupware.com/docs/mongo-mail/img/mongo-mail-filter.jpg
    :alt: Mongo Mail Filter schema
    :align: center
    
@@ -211,15 +217,95 @@ Original Message
     bW9kaSBxdWlzLiBBbGlhcyB2ZWwgbGF1ZGFudGl1bSBtYWduaSBzdXNjaXBpdC4gRnVnaWF0IGV0
     IHF1aXMgZXQgaW4gYWNjdXNhbXVzLg==
 
-Environment Configuration
-=========================
+
+Installation
+============
+
+Without Docker
+--------------
+
+Required
+::::::::
+
+- MongoDB Server
+- Postfix or Amavisd-new
+- Python 2.7.6+ (< 3.x)
+- python-gevent 1.0+
+- recent setuptools and pip installer
+
+Installation
+::::::::::::
+
+.. code:: bash
+
+    $ pip install mongo-mail-server
+
+    $ mongo-mail-server --help 
+
+
+With Docker
+-----------
+
+Required
+::::::::
+
+- Docker 1.4+
+- MongoDB Server
+    
+MongoDB Server example
+::::::::::::::::::::::
+
+Contenair based on Ubuntu 14.04 - Python 2.7
+
+Image from Dockerfile_
+
+.. code:: bash
+
+    $ docker pull dockerfile/mongodb
+    
+    $ docker run -d -p 27017:27017 --name mongodb dockerfile/mongodb mongod --smallfiles
+    
+    # Persist mongodb
+    $ docker run -v /home/persist/mongodb:/data/db -d -p 27017:27017 --name mongodb dockerfile/mongodb mongod --smallfiles
+
+Build Mongo Mail Server image
+:::::::::::::::::::::::::::::
+
+.. code:: bash
+
+    $ git clone https://github.com/srault95/mongo-mail-server.git
+    
+    $ cd mongo-mail-server && docker build -t mongo-mail-server .
+    
+    # help and verify
+    $ docker run -it --rm mongo-mail-server --help
+
+Run Mongo Mail Server
+:::::::::::::::::::::
+
+.. code:: bash
+
+    $ mongodb_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' mongodb)
+
+    # start for test
+    $ docker run -it --rm -e MMS_MONGODB_URI=mongodb://$mongodb_ip/message -p 172.17.42.1:14001:14001 mongo-mail-server
+
+    # start of background (optional: bind of docker0 interface)
+    # Add --restart=always for automatic restart 
+    $ docker run -d --name mms -e MMS_MONGODB_URI=mongodb://$mongodb_ip/message -p 172.17.42.1:14001:14001 mongo-mail-server
+
+    # Logs
+    $ docker logs mms
+    2015-02-12 07:35:36 rs_smtpd_server: [INFO] - Starting SMTP Server - server[mongo-quarantine] - on 0.0.0.0:14001 (PID:1)
+Configuration
+=============
 
 MMS_SERVER
 ----------
 
 Server mode: mongo-quarantine | mongo-proxy | mongo-proxy | debug
 
-Default: mongo-quarantine
+*Default*: mongo-quarantine
 
 .. code:: bash
 
@@ -339,85 +425,23 @@ MMS_DATA_SIZE_LIMIT
 
 *Default: 0 (no limit)*
 
+MMS_REAL_RCPT (for amavisd-new < 2.7.0)
+---------------------------------------
 
-Installation
-============
+**Replace smtp recipient by real recipients (for quarantine with amavisd-new)** 
 
-Without Docker
---------------
-
-Required
-::::::::
-
-- MongoDB Server
-- Python 2.7.6+ (< 3.x)
-- python-gevent 1.0+
-- recent setuptools and pip installer
-
-Installation
-::::::::::::
+*Default*: disable
 
 .. code:: bash
 
-    $ pip install mongo-mail-server
-
-    $ mongo-mail-server --help 
-
-
-With Docker
------------
-
-Required
-::::::::
-
-- Docker 1.4+
-- MongoDB Server
+    # with command mode
+    $ export MMS_REAL_RCPT=1
     
-MongoDB Server example
-::::::::::::::::::::::
-
-Contenair based on Ubuntu 14.04 - Python 2.7
-
-Image from Dockerfile_
-
-.. code:: bash
-
-    $ docker pull dockerfile/mongodb
+    # with docker environ
+    $ docker run -e MMS_REAL_RCPT=1
     
-    $ docker run -d -p 27017:27017 --name mongodb dockerfile/mongodb mongod --smallfiles
-    
-    # Persist mongodb
-    $ docker run -v /home/persist/mongodb:/data/db -d -p 27017:27017 --name mongodb dockerfile/mongodb mongod --smallfiles
-
-Build Mongo Mail Server image
-:::::::::::::::::::::::::::::
-
-.. code:: bash
-
-    $ git clone https://github.com/srault95/mongo-mail-server
-    
-    $ cd mongo-mail-server && docker build -t mongo-mail-server .
-    
-    # help and verify
-    $ docker run -it --rm mongo-mail-server --help
-
-Run Mongo Mail Server
-:::::::::::::::::::::
-
-.. code:: bash
-
-    $ mongodb_ip=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' mongodb)
-
-    # start for test
-    $ docker run -it --rm -e MMS_MONGODB_URI=mongodb://$mongodb_ip/message -p 172.17.42.1:14001:14001 mongo-mail-server
-
-    # start of background (optional: bind of docker0 interface)
-    # Add --restart=always for automatic restart 
-    $ docker run -d --name mms -e MMS_MONGODB_URI=mongodb://$mongodb_ip/message -p 172.17.42.1:14001:14001 mongo-mail-server
-
-    # Logs
-    $ docker logs mms
-    2015-02-12 07:35:36 rs_smtpd_server: [INFO] - Starting SMTP Server - server[mongo-quarantine] - on 0.0.0.0:14001 (PID:1)
+    # with command arguments
+    $ mongo-mail-server --real-rcpt
     
 Usecase - Quarantine Mode configuration - with Amavis
 =====================================================
@@ -639,7 +663,10 @@ Ideas
 - Record to ElasticSearch
 - Sends statistics to graphite, statsd, influxdb
 
-**Welcome to all contributors**
+Contributing
+============
+
+To contribute to the project, fork it on GitHub and send a pull request, all contributions and suggestions are welcome.
 
 .. _Gsmtpd: https://github.com/34nm/gsmtpd
 .. _MongoDB: http://mongodb.org/
