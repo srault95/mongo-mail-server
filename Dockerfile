@@ -3,7 +3,7 @@ FROM ubuntu:trusty
 MAINTAINER <stephane.rault@radicalspam.org>
 
 ENV MMS_SERVER mongo-quarantine
-ENV MMS_REAL_RCPT 1
+#ENV MMS_REAL_RCPT 1
 ENV MMS_HOST 0.0.0.0
 ENV MMS_PORT 14001
 ENV MMS_TIMEOUT 600
