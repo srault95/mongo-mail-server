@@ -16,7 +16,7 @@ def get_readme():
 
 setup(
     name='mongo-mail-server',
-    version="0.1.0",
+    version="0.1.1",
     description='Python SMTP server with Gevent for recording messages in MongoDB',
     long_description=get_readme(),
     author='Stéphane RAULT',
@@ -35,7 +35,7 @@ setup(
         'Intended Audience :: System Administrators'
     ],
     
-    url='https://github.com/srault95/mongo-mail-server', 
+    url='https://github.com/radical-software/mongo-mail-server', 
     include_package_data=True,
     zip_safe=False,
     scripts=['mongo_mail_server.py'],

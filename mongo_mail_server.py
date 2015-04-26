@@ -370,7 +370,7 @@ class SMTPChannel(object):
 
         if arg:
             if arg == 'ME':
-                self.push('504 Go to https://github.com/srault95/mongo-mail-server for help')
+                self.push('504 Go to https://github.com/radical-software/mongo-mail-server for help')
             else:
                 self.push('501 Syntax: HELP')
         else:

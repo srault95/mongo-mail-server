@@ -4,7 +4,7 @@ Mongo Mail Server
 
 **Gevent SMTP Server with MongoDB storage** 
 
-|Build Status| |pypi downloads| |pypi dev_status| |pypi version| |pypi licence| |pypi py_versions|
+|Build Status| |pypi downloads| |pypi dev_status| |pypi version| |pypi licence| |pypi py_versions| |requires status|
 
 **Demo:**
 
@@ -81,7 +81,7 @@ Tested With
 - MongoDB_ 2.6.5
 - Python_ 2.7.6
 - Gevent_ 1.0
-- Pymongo2_8 2.8 and Pymongo_ 3.0 
+- Pymongo2_8_ 2.8 and Pymongo_ 3.0 
 - Postfix_ 2.5.5
 - Amavisd-new_ 2.6.4
 
@@ -273,7 +273,7 @@ Build Mongo Mail Server image
 
 .. code:: bash
 
-    $ git clone https://github.com/srault95/mongo-mail-server.git
+    $ git clone https://github.com/radical-software/mongo-mail-server.git
     
     $ cd mongo-mail-server && docker build -t mongo-mail-server .
     
@@ -297,6 +297,7 @@ Run Mongo Mail Server
     # Logs
     $ docker logs mms
     2015-02-12 07:35:36 rs_smtpd_server: [INFO] - Starting SMTP Server - server[mongo-quarantine] - on 0.0.0.0:14001 (PID:1)
+
 Configuration
 =============
 
@@ -684,8 +685,8 @@ To contribute to the project, fork it on GitHub and send a pull request, all con
 .. _SpamAssassin: http://spamassassin.org/
 .. _Coroutine: http://en.wikipedia.org/wiki/Coroutine
  
-.. |Build Status| image:: https://travis-ci.org/srault95/mongo-mail-server.svg?branch=master
-   :target: https://travis-ci.org/srault95/mongo-mail-server
+.. |Build Status| image:: https://travis-ci.org/radical-software/mongo-mail-server.svg?branch=master
+   :target: https://travis-ci.org/radical-software/mongo-mail-server
    :alt: Travis Build Status
 
 .. |pypi downloads| image:: https://pypip.in/download/mongo-mail-server/badge.svg
@@ -708,3 +709,6 @@ To contribute to the project, fork it on GitHub and send a pull request, all con
     :target: https://pypi.python.org/pypi/mongo-mail-server
     :alt: Development Status        
     
+.. |requires status| image:: https://requires.io/github/radical-software/mongo-mail-server/requirements.svg?branch=master
+     :target: https://requires.io/github/radical-software/mongo-mail-server/requirements/?branch=master
+     :alt: Requirements Status    
