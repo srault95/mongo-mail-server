@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__VERSION__ = "0.1.0"
+__VERSION__ = "0.1.1"
 
 from gevent.monkey import patch_all
 patch_all()
