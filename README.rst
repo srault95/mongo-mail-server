@@ -4,7 +4,7 @@ Mongo Mail Server
 
 **Gevent SMTP Server with MongoDB storage** 
 
-|Build Status| |pypi downloads| |pypi dev_status| |pypi version| |pypi licence| |pypi py_versions| |requires status|
+|Build Status| |pypi downloads| |pypi version| |pypi licence| |requires status|
 
 **Demo:**
 
@@ -689,15 +689,15 @@ To contribute to the project, fork it on GitHub and send a pull request, all con
    :target: https://travis-ci.org/radical-software/mongo-mail-server
    :alt: Travis Build Status
 
-.. |pypi downloads| image:: https://pypip.in/download/mongo-mail-server/badge.svg
+.. |pypi downloads| image:: https://img.shields.io/pypi/dm/mongo-mail-server.svg
     :target: https://pypi.python.org/pypi/mongo-mail-server
     :alt: Number of PyPI downloads
     
-.. |pypi version| image:: https://pypip.in/version/mongo-mail-server/badge.svg
+.. |pypi version| image:: https://img.shields.io/pypi/v/mongo-mail-server.svg
     :target: https://pypi.python.org/pypi/mongo-mail-server
-    :alt: Latest Version    
+    :alt: Latest Version
 
-.. |pypi licence| image:: https://pypip.in/license/mongo-mail-server/badge.svg
+.. |pypi licence| image:: https://img.shields.io/pypi/l/mongo-mail-server.svg
     :target: https://pypi.python.org/pypi/mongo-mail-server
     :alt: License
 
