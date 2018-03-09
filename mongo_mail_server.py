@@ -41,13 +41,13 @@ try:
         PYMONGO2 = True
     else:
         PYMONGO2 = False
-        
+
 except ImportError:
     HAVE_PYMONGO = False
 
 from dateutil import tz
 
-__all__ = ["SMTPServer", "DebuggingServer", "PureProxy", 'SSLSettings', 
+__all__ = ["SMTPServer", "DebuggingServer", "PureProxy", 'SSLSettings',
            'RecordPyMongoDBServer', 'RecordPyMongoDBServerProxy']
 
 logger = logging.getLogger('mongo-mail-server')
@@ -75,7 +75,7 @@ class SMTPChannel(object):
         self.data = ''
         self.fqdn = fqdn
         self.ac_in_buffer_size = 4096
-        
+
         self.xforward_enable = True
         self.xforward_name = ''
         self.xforward_addr = ''
@@ -99,7 +99,7 @@ class SMTPChannel(object):
         self.push('220 %s SMTPD at your service' % self.fqdn)
         self.terminator = '\r\n'
         logger.debug('SMTP channel initialized')
-        
+
     # Overrides base class for convenience
     def push(self, msg):
         logger.debug('PUSH %s' % msg)
@@ -149,15 +149,15 @@ class SMTPChannel(object):
                 else:
                     data.append(text)
             self.data = NEWLINE.join(data)
-            
+
             xforward = {}
-            
+
             if self.xforward_enable:
                 xforward['NAME'] = self.xforward_name
                 xforward['ADDR'] = self.xforward_addr
                 xforward['HELO'] = self.xforward_helo
                 logger.debug("XFORWARD NAME=%(NAME)s ADDR=%(ADDR)s HELO=%(HELO)s" % xforward)
-            
+
             #peer, mailfrom, rcpttos, data, xforward
             status = self.server.process_message(self.peer,
                                                  self.mailfrom,
@@ -169,14 +169,14 @@ class SMTPChannel(object):
             self.xforward_name = ''
             self.xforward_addr = ''
             self.xforward_helo = ''
-            
+
             self.state = self.COMMAND
             self.terminator = '\r\n'
             if not status:
                 self.push('250 Ok')
             else:
                 self.push(status)
-    
+
     # SMTP and ESMTP commands
     def smtp_HELO(self, arg):
         if not arg:
@@ -210,15 +210,15 @@ class SMTPChannel(object):
 
             if self.data_size_limit > 0:
                 self.push('250-SIZE %s' % self.data_size_limit)
-            
-            if self.xforward_enable:    
+
+            if self.xforward_enable:
                 #self.push('250-XFORWARD NAME ADDR HELO') #250-XFORWARD NAME ADDR PROTO HELO
                 self.push('250-XFORWARD NAME ADDR PROTO HELO SOURCE PORT')
                 #amavis: XFORWARD NAME ADDR PORT PROTO HELO IDENT SOURCE
                 #postfix: 250-XFORWARD NAME ADDR PROTO HELO SOURCE PORT
-            
+
             self.push('250 HELP')
-    
+
     def smtp_NOOP(self, arg):
         if arg:
             self.push('501 Syntax: NOOP')
@@ -249,23 +249,23 @@ class SMTPChannel(object):
         return address
 
     def smtp_XFORWARD(self, arg):
-        
+
         """
         > support ESMTP postfix:
             250-XFORWARD NAME ADDR PROTO HELO SOURCE PORT
-        
+
         > support ESMTP mongomail:
             250-XFORWARD NAME ADDR PROTO HELO SOURCE PORT
-            
+
         > support ESMTP amavis:
             250 XFORWARD NAME ADDR PORT PROTO HELO SOURCE
-        
+
         attribute-name = ( NAME | ADDR | PORT | PROTO | HELO | IDENT | SOURCE )
          > amavis sent:
          XFORWARD ADDR=209.85.213.175 NAME=mail-ig0-f175.google.com PORT=38689 PROTO=ESMTP HELO=mail-ig0-f175.google.com SOURCE=REMOTE
         """
         logger.debug('XFORWARD %s' % arg)
-        
+
         if not arg:
             self.push('501 Syntax: XFORWARD')
         elif self.mailfrom:
@@ -276,7 +276,7 @@ class SMTPChannel(object):
 
             for i in attrs:
                 attr, value = i.split('=', 1)
-                
+
                 if attr == 'NAME':
                     self.xforward_name = value
                 elif attr == 'ADDR':
@@ -287,11 +287,11 @@ class SMTPChannel(object):
             self.push('250 Ok')
 
     def smtp_MAIL(self, arg):
-        
+
         if not self.seen_greeting:
             self.push('503 Error: send HELO first');
             return
-                
+
         address = self.getaddr('FROM:', arg.split()[0]) if arg else None
         if not address:
             self.push('501 Syntax: MAIL FROM:<address>')
@@ -310,7 +310,7 @@ class SMTPChannel(object):
         if not address:
             self.push('501 Syntax: RCPT TO: <address>')
             return
-        
+
         result = self.server.process_rcpt(address)
         if not result:
             self.rcpttos.append(address)
@@ -349,7 +349,7 @@ class SMTPChannel(object):
             self.push('501 Syntax: STARTTLS')
             return
         self.push('220 Ready to start TLS')
-        
+
         if self.data:
             self.push('500 Too late to changed')
             return
@@ -365,7 +365,7 @@ class SMTPChannel(object):
             logger.error(err, exc_info=True)
             self.push('503 certificate is FAILED')
             self.close_when_done()
-    
+
     def smtp_HELP(self, arg):
 
         if arg:
@@ -443,7 +443,7 @@ class SMTPChannel(object):
                         # no prefix, collect it all
                         self.collect_incoming_data(self.ac_in_buffer)
                         self.ac_in_buffer = ''
-        
+
     def handle_error(self):
         self.close_when_done()
 
@@ -456,38 +456,38 @@ class SMTPChannel(object):
 
 def load_plugin(name, callable_name='apply'):
     """Load module by name string
-    
+
     >>> mod = load_plugin("rs_common.tools.python_tools")
     >>> hasattr(mod, callable_name)
-    True 
-    
+    True
+
     >>> "rs_common.tools.python_tools".split(".")[-1:]
     ['python_tools']
-    
+
     >>> "rs_common.tools.python_tools".split(".")[:-1]
-    ['rs_common', 'tools']    
+    ['rs_common', 'tools']
     """
-    
+
     if not name:
         return None
 
     module_name = name
-    
+
     if not module_name in sys.modules:
         __import__(module_name)
-        
+
     mod = sys.modules[module_name]
-    
+
     if not hasattr(mod, callable_name):
         raise Exception("module [%s] not contains callable: %s" % (name,callable_name))
-    
+
     method = getattr(mod, callable_name)
-    
+
     if not callable(method):
         raise Exception("plugin not callable")
-    
+
     return method
-    
+
 
 def compress(data):
     return base64.b64encode(zlib.compress(data))
@@ -514,8 +514,8 @@ def extract_real_recipients(data):
         recipients = [r[1] for r in getaddresses(getall)]
     except Exception, err:
         logger.error(str(err))
-    return recipients 
-    
+    return recipients
+
 class ConnectionTimeout(BaseException):
     pass
 
@@ -530,7 +530,7 @@ class SSLSettings(UserDict):
         :param keyfile: SSL key file path usally end with ".key"
         :param certfile: SSL cert file path usally end with ".crt"
         """
-        UserDict.__init__(self) 
+        UserDict.__init__(self)
         self.data.update( dict(keyfile = keyfile,
                                 certfile = certfile,
                                 server_side = True,
@@ -546,7 +546,7 @@ class SMTPServer(StreamServer):
     """Abstracted SMTP server
     """
 
-    def __init__(self, localaddr=None, remoteaddr=None, 
+    def __init__(self, localaddr=None, remoteaddr=None,
                  timeout=60, data_size_limit=0, fqdn=None, debug=False, plugins=[], **kwargs):
         """Initialize SMTP Server
 
@@ -559,22 +559,22 @@ class SMTPServer(StreamServer):
 
         self.relay = bool(remoteaddr)
         self.remoteaddr = remoteaddr
-        
+
         self.localaddr = localaddr
 
         if not self.localaddr:
             self.localaddr = ('127.0.0.1', 25)
-        
+
         self.ssl = None
-        
+
         self.timeout = int(timeout)
 
         self.data_size_limit = int(data_size_limit)
-        
+
         self.fqdn = fqdn or socket.getfqdn()
-        
+
         self._plugins = plugins
-        
+
         self.debug = debug
 
         if 'keyfile' in kwargs:
@@ -588,11 +588,11 @@ class SMTPServer(StreamServer):
 
         if self.relay and not addr[0] in self.remoteaddr:
             logger.debug('Not in remoteaddr', *addr[:2])
-            return 
+            return
         try:
             with Timeout(self.timeout, ConnectionTimeout):
-                sc = SMTPChannel(self, sock, addr, 
-                                 data_size_limit=self.data_size_limit, 
+                sc = SMTPChannel(self, sock, addr,
+                                 data_size_limit=self.data_size_limit,
                                  fqdn=self.fqdn,
                                  )
                 while not sc.closed:
@@ -626,7 +626,7 @@ class SMTPServer(StreamServer):
 
         """
         raise NotImplementedError
-    
+
     # API that handle rcpt
     def process_rcpt(self, address):
         """Override this abstract method to handle rcpt from the client
@@ -642,9 +642,9 @@ class DebuggingServer(SMTPServer):
 
     def process_message(self, peer, mailfrom, rcpttos, data, xforward):
 
-        d = dict(store_key=None, 
+        d = dict(store_key=None,
                  sender=mailfrom.strip().lower(),
-                 rcpt=rcpttos, 
+                 rcpt=rcpttos,
                  rcpt_count=len(rcpttos),
                  client_address=xforward.get('ADDR', ''),
                  xforward=xforward,
@@ -656,7 +656,7 @@ class DebuggingServer(SMTPServer):
             for plugin in self._plugins:
                 logger.debug("run plugin[%s]" % plugin)
                 plugin(metadata=d, data=data)
-                
+
         print "debug server process_message..."
         inheaders = 1
         lines = data.split('\n')
@@ -671,7 +671,7 @@ class DebuggingServer(SMTPServer):
 
 
 class PureProxy(SMTPServer):
-    
+
     def process_message(self, peer, mailfrom, rcpttos, data, xforward):
         lines = data.split('\n')
         # Look for the last header
@@ -711,54 +711,54 @@ class PureProxy(SMTPServer):
 
 class RecordPyMongoDBServer(SMTPServer):
     """Record message to Mongo Server"""
-    
-    def __init__(self, 
+
+    def __init__(self,
                  allow_hosts=[],
                  db=None,
                  colname=None,
                  real_rcpt=False,
                  **kwargs):
-        
+
         SMTPServer.__init__(self, **kwargs)
-        
+
         self._allow_hosts = allow_hosts
-        
+
         self.db = db
         self.colname = colname
         self.real_rcpt = real_rcpt
-        
+
         self.col = self.db[self.colname]
         from gridfs import GridFS
         self.fs = GridFS(self.db)
-        
+
     def _security_check(self, address):
         """
         fail2ban: 2015-02-21 09:57:05 [5972] [CRITICAL] reject host [127.0.0.1]
         """
-        
+
         if not self._allow_hosts:
             return True
-        
+
         try:
             host = address[0]
 
             if not host in self._allow_hosts:
                 logger.critical("reject host [%s]" % host)
                 return False
-            
+
             return True
-            
+
         except Exception, err:
             logger.error(str(err))
-        
+
         return False
 
     def handle(self, sock, addr):
-        
-        if not self._security_check(addr):                
+
+        if not self._security_check(addr):
             sock.close()
             return
-        
+
         return SMTPServer.handle(self, sock, addr)
 
     def _record_mongodb(self, peer, mailfrom, rcpttos, data, xforward, refused=None):
@@ -769,9 +769,9 @@ class RecordPyMongoDBServer(SMTPServer):
         """
 
         key = generate_key()
-        
+
         recipients = []
-        
+
         if len(rcpttos) == 1 and self.real_rcpt:
             recipients = extract_real_recipients(data)
             lines = data.split('\n')
@@ -781,10 +781,10 @@ class RecordPyMongoDBServer(SMTPServer):
         else:
             for r in rcpttos:
                 recipients.append(r.strip().lower())
-        
-        d = dict(store_key=key, 
-                 sender=mailfrom.strip().lower(), 
-                 rcpt=recipients, 
+
+        d = dict(store_key=key,
+                 sender=mailfrom.strip().lower(),
+                 rcpt=recipients,
                  rcpt_count=len(recipients),
                  client_address=xforward.get('ADDR', ''),
                  xforward=xforward,
@@ -796,57 +796,57 @@ class RecordPyMongoDBServer(SMTPServer):
             for plugin in self._plugins:
                 logger.debug("run plugin[%s]" % plugin)
                 plugin(metadata=d, data=data)
-        
+
         message = self.fs.put(compress(data),
-                              filename=key, 
+                              filename=key,
                               #content_type='message/rfc822',
-                              content_type='text/plain',                                  
+                              content_type='text/plain',
                               )
         d['message'] = message
-        
+
         if PYMONGO2:
             self.col.insert(d)
         else:
             self.col.insert_one(d)
-        
-        return key 
-    
-        
+
+        return key
+
+
     def process_message(self, peer, mailfrom, rcpttos, data, xforward):
         try:
             key = self._record_mongodb(peer, mailfrom, rcpttos, data, xforward)
-            
+
             msg = "250 Ok: queued as %s" % key
-            
+
             logger.info(msg)
-            
+
             data = None
             key = None
             xforward = None
-            
+
             return msg
-        
+
         except Exception, err:
             logger.error(str(err))
             return "400 Server Error"
-        
+
 class RecordPyMongoDBServerProxy(RecordPyMongoDBServer):
 
     def process_message(self, peer, mailfrom, rcpttos, data, xforward):
-        
+
         try:
             refused = self._deliver(mailfrom, rcpttos, data, xforward)
-            
+
             key = self._record_mongodb(peer, mailfrom, rcpttos, data, xforward, refused)
             msg = "250 Ok: queued as %s" % key
             logger.info(msg)
-            
+
             data = None
             key = None
             xforward = None
-            
+
             return msg
-        
+
         except Exception, err:
             logger.error(str(err))
             return "400 Server Error"
@@ -858,33 +858,33 @@ class RecordPyMongoDBServerProxy(RecordPyMongoDBServer):
             if self.debug:
                 s.set_debuglevel(1)
             s.does_esmtp = 1
-            
+
             try:
 
                 (code, msg) = s.ehlo()
                 if code != 250:
                     s.rset()
                     raise smtplib.SMTPHeloError(code, msg)
-        
+
                 (code, msg) = s.docmd('XFORWARD', 'ADDR=%(ADDR)s NAME=%(NAME)s HELO=%(HELO)s' % xforward)
                 if code != 250:
                     s.rset()
                     raise smtplib.SMTPResponseException(code, msg)
-                
+
                 (code, msg) = s.mail(mailfrom)#, ["size=%s" % len(data)])
                 if code != 250:
                     s.rset()
                     raise smtplib.SMTPSenderRefused(code, msg, mailfrom)
-                
+
                 for rcpt in rcpttos:
                     (code, msg) = s.rcpt(rcpt)
                     if not code in [250, 251]:
                         refused[rcpt] = (code, msg)
-                        
+
                 if len(refused) == len(rcpttos):
                     s.rset()
                     raise smtplib.SMTPRecipientsRefused(refused)
-                
+
                 (code, msg) = s.data(data)
                 if code != 250:
                     s.rset()
@@ -892,7 +892,7 @@ class RecordPyMongoDBServerProxy(RecordPyMongoDBServer):
 
             finally:
                 s.quit()
-                
+
         except smtplib.SMTPRecipientsRefused, e:
             logger.debug('got SMTPRecipientsRefused')
             refused = e.recipients
@@ -905,7 +905,7 @@ class RecordPyMongoDBServerProxy(RecordPyMongoDBServer):
             errmsg = getattr(e, 'smtp_error', 'ignore')
             for r in rcpttos:
                 refused[r] = (errcode, errmsg)
-        
+
         return refused
 
 """
@@ -939,18 +939,18 @@ class RecordPyMongoDBServerProxy(RecordPyMongoDBServer):
         >>> from gridfs import GridFS
         >>> client = MongoClient(os.environ.get('MMS_MONGODB_URI'))
         >>> db = client['message']
-        
+
         #>>> db.drop_collection('message')
         #>>> db.drop_collection('fs.files')
         #>>> db.drop_collection('fs.chunks')
-        
+
         >>> col = db['message']
-        >>> doc = col.find_one() 
+        >>> doc = col.find_one()
 
         >>> fs = GridFS(db)
         >>> fs.list()
         [u'77dd50277b8b6260c9bda483ab12fb2c25a1c94337978310b7e8546cdf63ebf2']
-        
+
         >>> msg_base64 = fs.get(doc['message']).read()
         >>> msg_string = zlib.decompress(base64.b64decode(msg_base64))
         >>> msg = Parser().parsestr(msg_string)
@@ -959,31 +959,31 @@ class RecordPyMongoDBServerProxy(RecordPyMongoDBServer):
 """
 
 class MongoMailReader(object):
-    
-    def __init__(self, 
+
+    def __init__(self,
                  db=None,
                  colname=None,
                  **kwargs):
-        
+
         self.db = db
         self.colname = colname
         self.col = self.db[self.colname]
         from gridfs import GridFS
         self.fs = GridFS(self.db)
-        
+
     def count(self):
         return self.col.count()
-    
+
     def field_keys(self):
         count = self.count()
         if count == 0:
             return []
         doc = self.col.find_one()
         return doc.keys()
-    
+
     def file_list(self):
         return self.fs.list()
-    
+
     def display_headers(self, message_id, headers=[]):
         from email.parser import HeaderParser
         """
@@ -997,11 +997,11 @@ class MongoMailReader(object):
         for header, value in msg._headers:
             if not header in headers:
                 continue
-            
+
             if header in result:
                 result[header] = [result[header]] + [value]
             else:
-                result[header] = value 
+                result[header] = value
         return result
 
     def display_as_string(self, store_key=None):
@@ -1014,25 +1014,25 @@ def reader_options():
     import argparse
 
     parser = argparse.ArgumentParser(description='Mongo Mail Reader',
-                                     formatter_class=argparse.RawTextHelpFormatter, 
+                                     formatter_class=argparse.RawTextHelpFormatter,
                                      prog=os.path.basename(sys.argv[0]),
-                                     version=__VERSION__, 
+                                     version=__VERSION__,
                                      add_help=True)
-    
+
     parser.add_argument(
         '--mongo-host',
         default=env_config('MMS_MONGODB_URI', 'mongodb://localhost/message'),
         dest='mongo_host',
         help='MongoDB URI.  Defaults to %(default)s'
     )
-        
+
     parser.add_argument(
         '--mongo-database',
         default=env_config('MMS_MONGODB_DATABASE', 'message'),
         dest='mongo_database',
         help='Mongod database.  Defaults to %(default)s'
     )
-    
+
     parser.add_argument(
         '--mongo-collection',
         default=env_config('MMS_MONGODB_COLLECTION', 'message'),
@@ -1043,34 +1043,34 @@ def reader_options():
     parser.add_argument(
         '--fields',
         default='received,client_address,sender',
-        dest='fields',        
+        dest='fields',
         help='Display fields.  Defaults to %(default)s'
     )
 
     parser.add_argument(
         '--headers',
         default=None,
-        dest='headers',        
+        dest='headers',
         help='Display headers in message'
     )
 
     parser.add_argument(
         '--order-by',
         default='received',
-        dest='order_by',        
+        dest='order_by',
         help='Order By.  Defaults to %(default)s'
     )
 
     parser.add_argument(
         '--store-key',
-        dest='store_key',        
+        dest='store_key',
         help='store_key field for search one document.'
     )
 
     parser.add_argument(
         '--date-format',
         default='%Y-%m-%d %H:%M:%S',
-        dest='date_format',        
+        dest='date_format',
         help='Date formatter.  Defaults to %(default)s'
     )
 
@@ -1079,49 +1079,49 @@ def reader_options():
         action="store_true",
         dest='order_desc',
     )
-    
+
     parser.add_argument(
         '--limit',
         default=0,
         type=int,
         help='Diplay limit (zero for no limit).  Defaults to %(default)s'
     )
-    
 
-    commands = ['count', 
-                'display', 
+
+    commands = ['count',
+                'display',
                 'fields',
                 #'status',
-                'one', 
-                #'reload', 
-    ]    
+                'one',
+                #'reload',
+    ]
 
     parser.add_argument(choices=commands,
                         dest='command',
                         help="Run command.")
-    
-    parser.add_argument('--debug', 
+
+    parser.add_argument('--debug',
                         action="store_true",
                         default=env_config('MMS_DEBUG', False, cast=bool)
                         )
 
-    parser.add_argument('--json', 
+    parser.add_argument('--json',
                         action="store_true",
                         default=False,
                         )
 
-    parser.add_argument('--pretty', 
+    parser.add_argument('--pretty',
                         action="store_true",
                         default=False,
                         )
-        
+
     args = parser.parse_args()
-       
+
     kwargs = dict(args._get_kwargs())
-    
+
     return kwargs
 
-        
+
 def main_reader():
     opts = reader_options()
     command = opts.get('command')
@@ -1143,44 +1143,44 @@ def main_reader():
     MONGODB_SETTINGS = {
         'host': mongo_host,
         'tz_aware': True,
-    }        
-    
+    }
+
     if PYMONGO2:
         MONGODB_SETTINGS['use_greenlets'] = True
-    
+
     client = MongoClient(**MONGODB_SETTINGS)
-    
+
     def json_convert(obj):
         if isinstance(obj, ObjectId):
             return str(obj)
         if isinstance(obj, datetime.datetime):
-            return str(obj.isoformat())        
+            return str(obj.isoformat())
         return obj
-    
+
     reader = MongoMailReader(db=client[mongo_database], colname=mongo_collection)
-    
+
     def datetime_format(values):
         new_values = values.copy()
         for key, value in values.items():
             if isinstance(value, datetime.datetime):
                 new_values[key] = value.strftime(date_format)
-        return new_values      
-    
+        return new_values
+
     if command == 'count':
         count = reader.count()
         if is_json:
             print json.dumps(dict(count=count))
-        else: 
+        else:
             print "%d documents" % count
     elif command == 'fields':
         fields = reader.field_keys()
         if is_json:
             print json.dumps(dict(fields=fields))
-        else: 
+        else:
             print ",".join(fields)
     elif command == 'one':
         msg_string = reader.display_as_string(store_key)
-        print msg_string        
+        print msg_string
     elif command == 'display':
         _headers = None
         if headers:
@@ -1199,10 +1199,10 @@ def main_reader():
             if _headers:
                 _h = reader.display_headers(doc['message'], _headers)
                 values['headers'] = _h
-            
+
             if "message" in values:
                 values.pop('message')
-            
+
             if is_pretty:
                 values = datetime_format(values)
                 pp(values)
@@ -1210,21 +1210,21 @@ def main_reader():
                 print json.dumps(values, default=json_convert)
             else:
                 values = datetime_format(values)
-                print values 
-            
-        
-        
-            
-        
-def configure_logging(verbose=False, 
-                      frontend=True, 
+                print values
+
+
+
+
+
+def configure_logging(verbose=False,
+                      frontend=True,
                       add_syslog=False,
                       prog_name=__package__
                       ):
     """Configuration logging syslog sauf si win32"""
-    
+
     #from logging.handlers import SysLogHandler
-    
+
     LOGGING = {
         'version': 1,
         'disable_existing_loggers': True,
@@ -1237,7 +1237,7 @@ def configure_logging(verbose=False,
                 'format': '%(asctime)s %(name)s: [%(levelname)s] - %(message)s',
                 'datefmt': '%Y-%m-%d %H:%M:%S',
             },
-        },    
+        },
         'handlers': {
             'null': {
                 'level':'ERROR',
@@ -1247,14 +1247,14 @@ def configure_logging(verbose=False,
                 'level':'INFO',
                 'class':'logging.StreamHandler',
                 'formatter': 'simple'
-            },       
+            },
             #'syslog':{
             #    #'level':'INFO',
             #    'class':'logging.handlers.SysLogHandler',
             #    'address' : '/dev/log',
             #    'facility': SysLogHandler.LOG_DAEMON,
-            #    'formatter': 'simple'    
-            #},       
+            #    'formatter': 'simple'
+            #},
         },
         'loggers': {
             prog_name: {
@@ -1265,7 +1265,7 @@ def configure_logging(verbose=False,
             },
         },
     }
-    
+
     if sys.platform.startswith("win32"):
         #Si windows remplacer par console
         LOGGING['loggers'][prog_name]['handlers'] = ['console']
@@ -1274,26 +1274,26 @@ def configure_logging(verbose=False,
             LOGGING['loggers'][prog_name]['level'] = 'DEBUG'
             LOGGING['handlers']['console']['formatter'] = 'verbose'
             LOGGING['handlers']['console']['level'] = 'DEBUG'
-        
+
     elif frontend:
         #Si frontend, ajouter console
         if not 'console' in LOGGING['loggers'][prog_name]['handlers']:
             LOGGING['loggers'][prog_name]['handlers'].append('console')
-        
+
         if verbose:
             #Si verbose, ajouter console et remplacer formatter
             LOGGING['loggers'][prog_name]['level'] = 'DEBUG'
             #LOGGING['handlers']['syslog']['formatter'] = 'verbose'
             LOGGING['handlers']['console']['formatter'] = 'verbose'
             LOGGING['handlers']['console']['level'] = 'DEBUG'
-    
+
     #import pprint
     #pprint.pprint(LOGGING)
-    
+
     import logging.config
     logging.config.dictConfig(LOGGING)
     logger = logging.getLogger(prog_name)
-    
+
     return logger
 
 SERVERS = {
@@ -1303,22 +1303,22 @@ SERVERS = {
     'mongo-filter': RecordPyMongoDBServer,
     #'es-quarantine': '',
 }
-    
+
 def options():
     import argparse
 
     parser = argparse.ArgumentParser(description='Mongo Mail SMTP Server',
-                                     formatter_class=argparse.RawTextHelpFormatter, 
+                                     formatter_class=argparse.RawTextHelpFormatter,
                                      prog=os.path.basename(sys.argv[0]),
-                                     version=__VERSION__, 
+                                     version=__VERSION__,
                                      add_help=True)
-    
+
     parser.add_argument(
         '--host',
         default=env_config('MMS_HOST', "0.0.0.0"),
         help='Local address to attach to for receiving mail.  Defaults to %(default)s'
     )
-        
+
     parser.add_argument(
         '--port',
         default=env_config('MMS_PORT', 14001, cast=int),
@@ -1331,7 +1331,7 @@ def options():
         default=env_config('MMS_REMOTE_HOST', "127.0.0.1"),
         help='remote address to sent mail (proxy mode only).  Defaults to %(default)s'
     )
-        
+
     parser.add_argument(
         '--remote-port',
         default=env_config('MMS_REMOTE_PORT', 14002, cast=int),
@@ -1345,7 +1345,7 @@ def options():
         dest='spawn',
         type=int,
         help='SMTPD Concurency.  Defaults to %(default)s')
-    
+
     parser.add_argument(
         '--max-connections',
         default=env_config('MMS_MAX_CONNECTIONS', 256, cast=int),
@@ -1359,7 +1359,7 @@ def options():
         dest='timeout',
         type=int,
         help='SMTPD Timeout (seconds). Defaults to %(default)s')
-    
+
     parser.add_argument(
         '--data-size-limit',
         default=env_config('MMS_DATA_SIZE_LIMIT', 0, cast=int),
@@ -1372,179 +1372,179 @@ def options():
                         default=env_config('MMS_SERVER', 'mongo-quarantine'),
                         dest='server_choice',
                         help="Server type choice. Defaults to %(default)s")
-    
+
     parser.add_argument(
         '--mongo-host',
         default=env_config('MMS_MONGODB_URI', 'mongodb://localhost/message'),
         dest='mongo_host',
         help='MongoDB URI.  Defaults to %(default)s'
     )
-        
+
     parser.add_argument(
         '--mongo-database',
         default=env_config('MMS_MONGODB_DATABASE', 'message'),
         dest='mongo_database',
         help='Mongod database.  Defaults to %(default)s'
     )
-    
+
     parser.add_argument(
         '--mongo-collection',
         default=env_config('MMS_MONGODB_COLLECTION', 'message'),
         dest='mongo_collection',
         help='Mongod collection.  Defaults to %(default)s'
     )
-    
-    allow_arg = parser.add_argument('--allow', 
+
+    allow_arg = parser.add_argument('--allow',
                         dest='allow_hosts',
                         metavar="path",
                         action="append",
-                        default=[], 
+                        default=[],
                         help='Allow hosts'
                         )
-    
-    plugins = parser.add_argument('--plugin', 
+
+    plugins = parser.add_argument('--plugin',
                         dest='plugins',
                         metavar="path",
                         action="append",
-                        default=[], 
+                        default=[],
                         help='Plugins packages contains apply() method'
                         )
-    
-    commands = ['start', 
-                #'stop', 
-                #'status', 
-                #'reload', 
-    ]    
+
+    commands = ['start',
+                #'stop',
+                #'status',
+                #'reload',
+    ]
 
     parser.add_argument(choices=commands,
                         dest='command',
                         help="Run command.")
 
-    parser.add_argument('--debug', 
+    parser.add_argument('--debug',
                         action="store_true",
                         default=env_config('MMS_DEBUG', False, cast=bool)
                         )
-    
-    parser.add_argument('--real-rcpt', 
+
+    parser.add_argument('--real-rcpt',
                         action="store_true",
                         dest='real_rcpt',
                         default=env_config('MMS_REAL_RCPT', False, cast=bool)
                         )
-        
+
     args = parser.parse_args()
-       
+
     kwargs = dict(args._get_kwargs())
-    
+
     return kwargs
 
 
 def signal_server_stop(*args, **kwargs):
     server.stop()
-    
+
 def atexit_server_stop(server):
     server.stop()
-    
+
 def command_start(mode=None,
                   localaddr=None,
                   remoteaddr=None,
-                  backlog=256, 
+                  backlog=256,
                   spawn='default',
-                  timeout=30, 
-                  data_size_limit=0, 
-                  mongo_host=None, 
-                  mongo_database='message', 
+                  timeout=30,
+                  data_size_limit=0,
+                  mongo_host=None,
+                  mongo_database='message',
                   mongo_collection='message',
                   allow_hosts=None,
                   server_choice=None,
                   real_rcpt=False,
-                  plugins=[],           
+                  plugins=[],
                   debug=False):
 
     try:
         MONGODB_SETTINGS = {
             'host': mongo_host,
             'tz_aware': True,
-        }        
-        
+        }
+
         if PYMONGO2:
             MONGODB_SETTINGS['use_greenlets'] = True
-        
-        client = MongoClient(**MONGODB_SETTINGS)        
-        
+
+        client = MongoClient(**MONGODB_SETTINGS)
+
         #TODO: timeout connection, timeout_data et timeout_global
-        
+
         server_class = None
-        
+
         pid = str(os.getpid())
-        
+
         server_class = SERVERS[server_choice]
-        
+
         _plugins = []
         if plugins and len(plugins) > 0:
             for plugin in plugins:
                 c = load_plugin(plugin)
                 _plugins.append(c)
-        
+
         if server_choice == 'debug':
 
             server_kwargs = dict(localaddr=localaddr,
                                  timeout=timeout,
                                  backlog=backlog,
-                                 spawn=spawn, 
+                                 spawn=spawn,
                                  data_size_limit=data_size_limit,
                                  plugins=_plugins,
                                  debug=debug)
-            
+
             msg = "Starting SMTP Server - server[%s] - on %s:%s (PID:%s)" % (server_choice, localaddr[0], localaddr[1], pid)
-        
+
         elif server_choice in ['mongo-quarantine', 'mongo-filter']:
-            
+
             server_kwargs = dict(localaddr=localaddr,
                                  allow_hosts=allow_hosts,
-                                 plugins=_plugins,                                       
+                                 plugins=_plugins,
                                  timeout=timeout,
                                  backlog=backlog,
-                                 spawn=spawn, 
-                                 data_size_limit=data_size_limit, 
+                                 spawn=spawn,
+                                 data_size_limit=data_size_limit,
                                  db=client[mongo_database],
                                  colname=mongo_collection,
                                  debug=debug)
-            
+
             if server_choice == 'mongo-quarantine':
                 server_kwargs['real_rcpt'] = real_rcpt
-            
+
             msg = "Starting SMTP Server - server[%s] - on %s:%s (PID:%s)" % (server_choice, localaddr[0], localaddr[1], pid)
-            
+
         elif server_choice == 'mongo-proxy':
-            
+
             server_kwargs = dict(localaddr=localaddr,
                                  remoteaddr=remoteaddr,
                                  allow_hosts=allow_hosts,
-                                 plugins=_plugins,                                       
+                                 plugins=_plugins,
                                  timeout=timeout,
                                  backlog=backlog,
-                                 spawn=spawn, 
-                                 data_size_limit=data_size_limit, 
+                                 spawn=spawn,
+                                 data_size_limit=data_size_limit,
                                  db=client[mongo_database],
                                  colname=mongo_collection,
                                  debug=debug,                                     )
 
             msg = "Starting SMTP Server - server[%s] - on %s:%s -> remote %s:%s (PID:%s)" % (server_choice,
-                                                                                           localaddr[0], localaddr[1], 
-                                                                                           remoteaddr[0], remoteaddr[1], 
+                                                                                           localaddr[0], localaddr[1],
+                                                                                           remoteaddr[0], remoteaddr[1],
                                                                                            pid)
-         
+
         server = server_class(**server_kwargs)
-        
+
         if allow_hosts:
             msg = "%s - allow[%s]" % (msg, ",".join(allow_hosts))
         logger.info(msg)
-        
+
         #gevent.signal(signal.SIGTERM, signal_server_stop)
         #if hasattr(signal, 'SIGQUIT'): gevent.signal(signal.SIGQUIT, signal_server_stop)
-        
+
         atexit.register(atexit_server_stop, server)
-        
+
         server.serve_forever()
     except KeyboardInterrupt:
         server.stop()
@@ -1552,52 +1552,52 @@ def command_start(mode=None,
     except Exception, err:
         sys.stderr.write("Start Server Error : %s\n" % str(err))
         sys.exit(1)
-        
+
 def main():
-    
+
     opts = options()
-    command = opts.pop('command')    
+    command = opts.pop('command')
     debug = opts.pop('debug', False)
     """
     With plugins:
-        python -m mongo_mail_server --server debug --host 127.0.0.1 --port 14001 --plugin contrib.dummy_plugin start    
-    
+        python -m mongo_mail_server --server debug --host 127.0.0.1 --port 14001 --plugin contrib.dummy_plugin start
+
     debug server:
-        python -m mongo_mail_server --server debug --host 127.0.0.1 --port 14001 start 
-    
+        python -m mongo_mail_server --server debug --host 127.0.0.1 --port 14001 start
+
     mongo filter or quarantine
         python -m mongo_mail_server --server mongo-quarantine start
-    
+
     mongo proxy:
         python -m mongo_mail_server --host 127.0.0.1 --port 14002 --server debug start
         python -m mongo_mail_server --remote-host 127.0.0.1 --remote-port 14002 --server mongo-proxy start
-        
+
     reader:
         /usr/local/bin/mongo-mail-reader --limit 10 --order-desc --headers Received --pretty display
         --pretty, --json
-        
+
         --limit 10 --order-desc --order-by rcpt_count --headers To --pretty display
-        
+
         #list of store_key
         --fields received,sender,store_key --limit 10 --order-desc --pretty
 
         #extract message string
         --store-key xxx one
     """
-    
+
     configure_logging(verbose=debug, frontend=True, prog_name='mongo-mail-server')
-    
+
     if command == 'start':
-        
+
         localaddr = (opts.pop('host'), opts.pop('port'))
-        
+
         remoteaddr = (opts.pop('remote_host'), opts.pop('remote_port'))
-    
+
         command_start(localaddr=localaddr,
                       remoteaddr=remoteaddr,
-                      debug=debug, 
+                      debug=debug,
                       **opts)
-    
+
 
 if __name__ == "__main__":
-    main()        
+    main()
