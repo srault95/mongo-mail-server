@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
+
 __VERSION__ = "0.1.1"
 
 from gevent.monkey import patch_all
@@ -518,7 +520,7 @@ def extract_real_recipients(data):
         msg = HeaderParser().parsestr(data, headersonly=True)
         getall = msg.get_all('X-Envelope-To', [])
         recipients = [r[1] for r in getaddresses(getall)]
-    except Exception, err:
+    except Exception as err:
         logger.error(str(err))
     return recipients
 
@@ -667,17 +669,17 @@ class DebuggingServer(SMTPServer):
                 logger.debug("run plugin[%s]" % plugin)
                 plugin(metadata=d, data=data)
 
-        print "debug server process_message..."
+        print("debug server process_message...")
         inheaders = 1
         lines = data.split('\n')
-        print '---------- MESSAGE FOLLOWS ----------'
+        print('---------- MESSAGE FOLLOWS ----------')
         for line in lines:
             # headers first
             if inheaders and not line:
-                print 'X-Peer:', peer[0]
+                print('X-Peer:', peer[0])
                 inheaders = 0
-            print line
-        print '------------ END MESSAGE ------------'
+            print(line)
+        print('------------ END MESSAGE ------------')
 
 
 class PureProxy(SMTPServer):
@@ -705,10 +707,10 @@ class PureProxy(SMTPServer):
                 refused = s.sendmail(mailfrom, rcpttos, data)
             finally:
                 s.quit()
-        except smtplib.SMTPRecipientsRefused, e:
+        except smtplib.SMTPRecipientsRefused as e:
             logger.debug('got SMTPRecipientsRefused')
             refused = e.recipients
-        except (socket.error, smtplib.SMTPException), e:
+        except (socket.error, smtplib.SMTPException) as e:
             logger.debug('got %s', e.__class__)
             # All recipients were refused.  If the exception had an associated
             # error code, use it.  Otherwise,fake it with a non-triggering
@@ -759,7 +761,7 @@ class RecordPyMongoDBServer(SMTPServer):
 
             return True
 
-        except Exception, err:
+        except Exception as err:
             logger.error(str(err))
 
         return False
@@ -836,7 +838,7 @@ class RecordPyMongoDBServer(SMTPServer):
 
             return msg
 
-        except Exception, err:
+        except Exception as err:
             logger.error(str(err))
             return "400 Server Error"
 
@@ -858,7 +860,7 @@ class RecordPyMongoDBServerProxy(RecordPyMongoDBServer):
 
             return msg
 
-        except Exception, err:
+        except Exception as err:
             logger.error(str(err))
             return "400 Server Error"
 
@@ -904,10 +906,10 @@ class RecordPyMongoDBServerProxy(RecordPyMongoDBServer):
             finally:
                 s.quit()
 
-        except smtplib.SMTPRecipientsRefused, e:
+        except smtplib.SMTPRecipientsRefused as e:
             logger.debug('got SMTPRecipientsRefused')
             refused = e.recipients
-        except (socket.error, smtplib.SMTPException), e:
+        except (socket.error, smtplib.SMTPException) as e:
             logger.debug('got %s', e.__class__)
             # All recipients were refused.  If the exception had an associated
             # error code, use it.  Otherwise,fake it with a non-triggering
@@ -1182,18 +1184,18 @@ def main_reader():
     if command == 'count':
         count = reader.count()
         if is_json:
-            print json.dumps(dict(count=count))
+            print(json.dumps(dict(count=count)))
         else:
-            print "%d documents" % count
+            print("%d documents" % count)
     elif command == 'fields':
         fields = reader.field_keys()
         if is_json:
-            print json.dumps(dict(fields=fields))
+            print(json.dumps(dict(fields=fields)))
         else:
-            print ",".join(fields)
+            print(",".join(fields))
     elif command == 'one':
         msg_string = reader.display_as_string(store_key)
-        print msg_string
+        print(msg_string)
     elif command == 'display':
         _headers = None
         if headers:
@@ -1220,10 +1222,10 @@ def main_reader():
                 values = datetime_format(values)
                 pp(values)
             elif is_json:
-                print json.dumps(values, default=json_convert)
+                print(json.dumps(values, default=json_convert))
             else:
                 values = datetime_format(values)
-                print values
+                print(values)
 
 
 def configure_logging(verbose=False,
@@ -1567,7 +1569,7 @@ def command_start(mode=None,
     except KeyboardInterrupt:
         server.stop()
         sys.exit(0)
-    except Exception, err:
+    except Exception as err:
         sys.stderr.write("Start Server Error : %s\n" % str(err))
         sys.exit(1)
 
