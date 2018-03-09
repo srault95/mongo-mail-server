@@ -4,7 +4,7 @@
 __VERSION__ = "0.1.1"
 
 from gevent.monkey import patch_all
-patch_all()
+patch_all()  # noqa
 
 from pprint import pprint as pp
 import json
@@ -56,6 +56,7 @@ NEWLINE = '\n'
 EMPTYSTRING = ''
 COMMASPACE = ', '
 
+
 class SMTPChannel(object):
     """
     Port from stdlib smtpd used by Gevent
@@ -83,7 +84,7 @@ class SMTPChannel(object):
 
         self.ac_in_buffer = ''
         self.closed = False
-        self.data_size_limit = data_size_limit # in byte
+        self.data_size_limit = data_size_limit  # in byte
         self.current_size = 0
         self.tls = False
         try:
@@ -128,7 +129,7 @@ class SMTPChannel(object):
                 arg = None
             else:
                 command = line[:i].upper()
-                arg = line[i+1:].strip()
+                arg = line[i + 1:].strip()
             method = getattr(self, 'smtp_' + command, None)
             logger.debug('%s:%s', command, arg)
             if not method:
@@ -158,7 +159,7 @@ class SMTPChannel(object):
                 xforward['HELO'] = self.xforward_helo
                 logger.debug("XFORWARD NAME=%(NAME)s ADDR=%(ADDR)s HELO=%(HELO)s" % xforward)
 
-            #peer, mailfrom, rcpttos, data, xforward
+            # peer, mailfrom, rcpttos, data, xforward
             status = self.server.process_message(self.peer,
                                                  self.mailfrom,
                                                  self.rcpttos,
@@ -212,10 +213,10 @@ class SMTPChannel(object):
                 self.push('250-SIZE %s' % self.data_size_limit)
 
             if self.xforward_enable:
-                #self.push('250-XFORWARD NAME ADDR HELO') #250-XFORWARD NAME ADDR PROTO HELO
+                # self.push('250-XFORWARD NAME ADDR HELO') #250-XFORWARD NAME ADDR PROTO HELO
                 self.push('250-XFORWARD NAME ADDR PROTO HELO SOURCE PORT')
-                #amavis: XFORWARD NAME ADDR PORT PROTO HELO IDENT SOURCE
-                #postfix: 250-XFORWARD NAME ADDR PROTO HELO SOURCE PORT
+                # amavis: XFORWARD NAME ADDR PORT PROTO HELO IDENT SOURCE
+                # postfix: 250-XFORWARD NAME ADDR PROTO HELO SOURCE PORT
 
             self.push('250 HELP')
 
@@ -289,7 +290,7 @@ class SMTPChannel(object):
     def smtp_MAIL(self, arg):
 
         if not self.seen_greeting:
-            self.push('503 Error: send HELO first');
+            self.push('503 Error: send HELO first')
             return
 
         address = self.getaddr('FROM:', arg.split()[0]) if arg else None
@@ -408,7 +409,7 @@ class SMTPChannel(object):
                     self.ac_in_buffer = ''
                     self.terminator = self.terminator - lb
                 else:
-                    self.collect_incoming_data (self.ac_in_buffer[:n])
+                    self.collect_incoming_data(self.ac_in_buffer[:n])
                     self.ac_in_buffer = self.ac_in_buffer[n:]
                     self.terminator = 0
                     self.found_terminator()
@@ -426,8 +427,8 @@ class SMTPChannel(object):
                     # we found the terminator
                     if index > 0:
                         # don't bother reporting the empty string (source of subtle bugs)
-                        self.collect_incoming_data (self.ac_in_buffer[:index])
-                    self.ac_in_buffer = self.ac_in_buffer[index+terminator_len:]
+                        self.collect_incoming_data(self.ac_in_buffer[:index])
+                    self.ac_in_buffer = self.ac_in_buffer[index + terminator_len:]
                     # This does the Right Thing if the terminator is changed here.
                     self.found_terminator()
                 else:
@@ -436,7 +437,7 @@ class SMTPChannel(object):
                     if index:
                         if index != lb:
                             # we found a prefix, collect up to the prefix
-                            self.collect_incoming_data (self.ac_in_buffer[:-index])
+                            self.collect_incoming_data(self.ac_in_buffer[:-index])
                             self.ac_in_buffer = self.ac_in_buffer[-index:]
                         break
                     else:
@@ -453,6 +454,7 @@ class SMTPChannel(object):
             logger.debug('CLOSED %s' % self.conn)
             self.conn.close()
         self.closed = True
+
 
 def load_plugin(name, callable_name='apply'):
     """Load module by name string
@@ -473,13 +475,13 @@ def load_plugin(name, callable_name='apply'):
 
     module_name = name
 
-    if not module_name in sys.modules:
+    if module_name not in sys.modules:
         __import__(module_name)
 
     mod = sys.modules[module_name]
 
     if not hasattr(mod, callable_name):
-        raise Exception("module [%s] not contains callable: %s" % (name,callable_name))
+        raise Exception("module [%s] not contains callable: %s" % (name, callable_name))
 
     method = getattr(mod, callable_name)
 
@@ -492,17 +494,21 @@ def load_plugin(name, callable_name='apply'):
 def compress(data):
     return base64.b64encode(zlib.compress(data))
 
+
 def uncompress(data):
     return zlib.decompress(base64.b64decode(data))
+
 
 def timestamp():
     dt = datetime.datetime.utcnow()
     return datetime.datetime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.microsecond, tz.tzutc())
 
+
 def generate_key():
     """Génère un ID unique de 64 caractères"""
     new_uuid = str(uuid.uuid4())
     return hashlib.sha256(new_uuid).hexdigest()
+
 
 def extract_real_recipients(data):
     from email.parser import HeaderParser
@@ -516,8 +522,10 @@ def extract_real_recipients(data):
         logger.error(str(err))
     return recipients
 
+
 class ConnectionTimeout(BaseException):
     pass
+
 
 class SSLSettings(UserDict):
     """SSL settings object"""
@@ -531,15 +539,16 @@ class SSLSettings(UserDict):
         :param certfile: SSL cert file path usally end with ".crt"
         """
         UserDict.__init__(self)
-        self.data.update( dict(keyfile = keyfile,
-                                certfile = certfile,
-                                server_side = True,
-                                ssl_version = getattr(ssl, ssl_version, ssl.PROTOCOL_SSLv23),
-                                ca_certs = ca_certs,
-                                do_handshake_on_connect = do_handshake_on_connect,
-                                cert_reqs=cert_reqs,
-                                suppress_ragged_eofs = suppress_ragged_eofs,
-                                ciphers = ciphers))
+        self.data.update(dict(
+            keyfile=keyfile,
+            certfile=certfile,
+            server_side=True,
+            ssl_version=getattr(ssl, ssl_version, ssl.PROTOCOL_SSLv23),
+            ca_certs=ca_certs,
+            do_handshake_on_connect=do_handshake_on_connect,
+            cert_reqs=cert_reqs,
+            suppress_ragged_eofs=suppress_ragged_eofs,
+            ciphers=ciphers))
 
 
 class SMTPServer(StreamServer):
@@ -638,6 +647,7 @@ class SMTPServer(StreamServer):
         """
         pass
 
+
 class DebuggingServer(SMTPServer):
 
     def process_message(self, peer, mailfrom, rcpttos, data, xforward):
@@ -699,7 +709,7 @@ class PureProxy(SMTPServer):
             logger.debug('got SMTPRecipientsRefused')
             refused = e.recipients
         except (socket.error, smtplib.SMTPException), e:
-            logger.debug( 'got %s', e.__class__)
+            logger.debug('got %s', e.__class__)
             # All recipients were refused.  If the exception had an associated
             # error code, use it.  Otherwise,fake it with a non-triggering
             # exception code.
@@ -708,6 +718,7 @@ class PureProxy(SMTPServer):
             for r in rcpttos:
                 refused[r] = (errcode, errmsg)
         return refused
+
 
 class RecordPyMongoDBServer(SMTPServer):
     """Record message to Mongo Server"""
@@ -742,7 +753,7 @@ class RecordPyMongoDBServer(SMTPServer):
         try:
             host = address[0]
 
-            if not host in self._allow_hosts:
+            if host not in self._allow_hosts:
                 logger.critical("reject host [%s]" % host)
                 return False
 
@@ -799,7 +810,7 @@ class RecordPyMongoDBServer(SMTPServer):
 
         message = self.fs.put(compress(data),
                               filename=key,
-                              #content_type='message/rfc822',
+                              # content_type='message/rfc822',
                               content_type='text/plain',
                               )
         d['message'] = message
@@ -810,7 +821,6 @@ class RecordPyMongoDBServer(SMTPServer):
             self.col.insert_one(d)
 
         return key
-
 
     def process_message(self, peer, mailfrom, rcpttos, data, xforward):
         try:
@@ -829,6 +839,7 @@ class RecordPyMongoDBServer(SMTPServer):
         except Exception, err:
             logger.error(str(err))
             return "400 Server Error"
+
 
 class RecordPyMongoDBServerProxy(RecordPyMongoDBServer):
 
@@ -871,14 +882,14 @@ class RecordPyMongoDBServerProxy(RecordPyMongoDBServer):
                     s.rset()
                     raise smtplib.SMTPResponseException(code, msg)
 
-                (code, msg) = s.mail(mailfrom)#, ["size=%s" % len(data)])
+                (code, msg) = s.mail(mailfrom)  # , ["size=%s" % len(data)])
                 if code != 250:
                     s.rset()
                     raise smtplib.SMTPSenderRefused(code, msg, mailfrom)
 
                 for rcpt in rcpttos:
                     (code, msg) = s.rcpt(rcpt)
-                    if not code in [250, 251]:
+                    if code not in [250, 251]:
                         refused[rcpt] = (code, msg)
 
                 if len(refused) == len(rcpttos):
@@ -897,7 +908,7 @@ class RecordPyMongoDBServerProxy(RecordPyMongoDBServer):
             logger.debug('got SMTPRecipientsRefused')
             refused = e.recipients
         except (socket.error, smtplib.SMTPException), e:
-            logger.debug( 'got %s', e.__class__)
+            logger.debug('got %s', e.__class__)
             # All recipients were refused.  If the exception had an associated
             # error code, use it.  Otherwise,fake it with a non-triggering
             # exception code.
@@ -907,6 +918,7 @@ class RecordPyMongoDBServerProxy(RecordPyMongoDBServer):
                 refused[r] = (errcode, errmsg)
 
         return refused
+
 
 """
 ('X-Envelope-From', '<stephane.rault@radicalspam.org>')
@@ -958,6 +970,7 @@ class RecordPyMongoDBServerProxy(RecordPyMongoDBServer):
 
 """
 
+
 class MongoMailReader(object):
 
     def __init__(self,
@@ -995,7 +1008,7 @@ class MongoMailReader(object):
         result = {}
         msg = HeaderParser().parsestr(zlib.decompress(base64.b64decode(self.fs.get(message_id).read())))
         for header, value in msg._headers:
-            if not header in headers:
+            if header not in headers:
                 continue
 
             if header in result:
@@ -1005,10 +1018,11 @@ class MongoMailReader(object):
         return result
 
     def display_as_string(self, store_key=None):
-        doc = self.col.find_one({'store_key': {'$eq': store_key} })
+        doc = self.col.find_one({'store_key': {'$eq': store_key}})
         if doc:
             message_id = doc['message']
             return zlib.decompress(base64.b64decode(self.fs.get(message_id).read()))
+
 
 def reader_options():
     import argparse
@@ -1087,14 +1101,13 @@ def reader_options():
         help='Diplay limit (zero for no limit).  Defaults to %(default)s'
     )
 
-
     commands = ['count',
                 'display',
                 'fields',
-                #'status',
+                # 'status',
                 'one',
-                #'reload',
-    ]
+                # 'reload',
+                ]
 
     parser.add_argument(choices=commands,
                         dest='command',
@@ -1213,9 +1226,6 @@ def main_reader():
                 print values
 
 
-
-
-
 def configure_logging(verbose=False,
                       frontend=True,
                       add_syslog=False,
@@ -1223,7 +1233,7 @@ def configure_logging(verbose=False,
                       ):
     """Configuration logging syslog sauf si win32"""
 
-    #from logging.handlers import SysLogHandler
+    # from logging.handlers import SysLogHandler
 
     LOGGING = {
         'version': 1,
@@ -1240,25 +1250,25 @@ def configure_logging(verbose=False,
         },
         'handlers': {
             'null': {
-                'level':'ERROR',
-                'class':'logging.NullHandler',
+                'level': 'ERROR',
+                'class': 'logging.NullHandler',
             },
-            'console':{
-                'level':'INFO',
-                'class':'logging.StreamHandler',
+            'console': {
+                'level': 'INFO',
+                'class': 'logging.StreamHandler',
                 'formatter': 'simple'
             },
-            #'syslog':{
-            #    #'level':'INFO',
-            #    'class':'logging.handlers.SysLogHandler',
-            #    'address' : '/dev/log',
-            #    'facility': SysLogHandler.LOG_DAEMON,
-            #    'formatter': 'simple'
-            #},
+            # 'syslog':{
+            #     #'level':'INFO',
+            #     'class':'logging.handlers.SysLogHandler',
+            #     'address' : '/dev/log',
+            #     'facility': SysLogHandler.LOG_DAEMON,
+            #     'formatter': 'simple'
+            # },
         },
         'loggers': {
             prog_name: {
-                #'handlers': ['syslog'],
+                # 'handlers': ['syslog'],
                 'handlers': ['console'],
                 'level': 'INFO',
                 'propagate': True,
@@ -1267,28 +1277,28 @@ def configure_logging(verbose=False,
     }
 
     if sys.platform.startswith("win32"):
-        #Si windows remplacer par console
+        # Si windows remplacer par console
         LOGGING['loggers'][prog_name]['handlers'] = ['console']
-        #del LOGGING['handlers']['syslog']
+        # del LOGGING['handlers']['syslog']
         if verbose:
             LOGGING['loggers'][prog_name]['level'] = 'DEBUG'
             LOGGING['handlers']['console']['formatter'] = 'verbose'
             LOGGING['handlers']['console']['level'] = 'DEBUG'
 
     elif frontend:
-        #Si frontend, ajouter console
-        if not 'console' in LOGGING['loggers'][prog_name]['handlers']:
+        # Si frontend, ajouter console
+        if 'console' not in LOGGING['loggers'][prog_name]['handlers']:
             LOGGING['loggers'][prog_name]['handlers'].append('console')
 
         if verbose:
-            #Si verbose, ajouter console et remplacer formatter
+            # Si verbose, ajouter console et remplacer formatter
             LOGGING['loggers'][prog_name]['level'] = 'DEBUG'
-            #LOGGING['handlers']['syslog']['formatter'] = 'verbose'
+            # LOGGING['handlers']['syslog']['formatter'] = 'verbose'
             LOGGING['handlers']['console']['formatter'] = 'verbose'
             LOGGING['handlers']['console']['level'] = 'DEBUG'
 
-    #import pprint
-    #pprint.pprint(LOGGING)
+    # import pprint
+    # pprint.pprint(LOGGING)
 
     import logging.config
     logging.config.dictConfig(LOGGING)
@@ -1296,13 +1306,15 @@ def configure_logging(verbose=False,
 
     return logger
 
+
 SERVERS = {
     'debug': DebuggingServer,
     'mongo-proxy': RecordPyMongoDBServerProxy,
     'mongo-quarantine': RecordPyMongoDBServer,
     'mongo-filter': RecordPyMongoDBServer,
-    #'es-quarantine': '',
+    # 'es-quarantine': '',
 }
+
 
 def options():
     import argparse
@@ -1367,11 +1379,12 @@ def options():
         type=int,
         help='SMTPD Data Size Limit (octets) - Zero for no limit.  Defaults to %(default)s')
 
-    server_args = parser.add_argument('--server',
-                        choices=SERVERS.keys(),
-                        default=env_config('MMS_SERVER', 'mongo-quarantine'),
-                        dest='server_choice',
-                        help="Server type choice. Defaults to %(default)s")
+    server_args = parser.add_argument(
+        '--server',
+        choices=SERVERS.keys(),
+        default=env_config('MMS_SERVER', 'mongo-quarantine'),
+        dest='server_choice',
+        help="Server type choice. Defaults to %(default)s")
 
     parser.add_argument(
         '--mongo-host',
@@ -1394,27 +1407,29 @@ def options():
         help='Mongod collection.  Defaults to %(default)s'
     )
 
-    allow_arg = parser.add_argument('--allow',
-                        dest='allow_hosts',
-                        metavar="path",
-                        action="append",
-                        default=[],
-                        help='Allow hosts'
-                        )
+    allow_arg = parser.add_argument(
+        '--allow',
+        dest='allow_hosts',
+        metavar="path",
+        action="append",
+        default=[],
+        help='Allow hosts'
+    )
 
-    plugins = parser.add_argument('--plugin',
-                        dest='plugins',
-                        metavar="path",
-                        action="append",
-                        default=[],
-                        help='Plugins packages contains apply() method'
-                        )
+    plugins = parser.add_argument(
+        '--plugin',
+        dest='plugins',
+        metavar="path",
+        action="append",
+        default=[],
+        help='Plugins packages contains apply() method'
+    )
 
     commands = ['start',
-                #'stop',
-                #'status',
-                #'reload',
-    ]
+                # 'stop',
+                # 'status',
+                # 'reload',
+                ]
 
     parser.add_argument(choices=commands,
                         dest='command',
@@ -1441,8 +1456,10 @@ def options():
 def signal_server_stop(*args, **kwargs):
     server.stop()
 
+
 def atexit_server_stop(server):
     server.stop()
+
 
 def command_start(mode=None,
                   localaddr=None,
@@ -1471,7 +1488,7 @@ def command_start(mode=None,
 
         client = MongoClient(**MONGODB_SETTINGS)
 
-        #TODO: timeout connection, timeout_data et timeout_global
+        # TODO: timeout connection, timeout_data et timeout_global
 
         server_class = None
 
@@ -1527,12 +1544,13 @@ def command_start(mode=None,
                                  data_size_limit=data_size_limit,
                                  db=client[mongo_database],
                                  colname=mongo_collection,
-                                 debug=debug,                                     )
+                                 debug=debug,)
 
-            msg = "Starting SMTP Server - server[%s] - on %s:%s -> remote %s:%s (PID:%s)" % (server_choice,
-                                                                                           localaddr[0], localaddr[1],
-                                                                                           remoteaddr[0], remoteaddr[1],
-                                                                                           pid)
+            msg = "Starting SMTP Server - server[%s] - on %s:%s -> remote %s:%s (PID:%s)" % (
+                server_choice,
+                localaddr[0], localaddr[1],
+                remoteaddr[0], remoteaddr[1],
+                pid)
 
         server = server_class(**server_kwargs)
 
@@ -1540,8 +1558,8 @@ def command_start(mode=None,
             msg = "%s - allow[%s]" % (msg, ",".join(allow_hosts))
         logger.info(msg)
 
-        #gevent.signal(signal.SIGTERM, signal_server_stop)
-        #if hasattr(signal, 'SIGQUIT'): gevent.signal(signal.SIGQUIT, signal_server_stop)
+        # gevent.signal(signal.SIGTERM, signal_server_stop)
+        # if hasattr(signal, 'SIGQUIT'): gevent.signal(signal.SIGQUIT, signal_server_stop)
 
         atexit.register(atexit_server_stop, server)
 
@@ -1552,6 +1570,7 @@ def command_start(mode=None,
     except Exception, err:
         sys.stderr.write("Start Server Error : %s\n" % str(err))
         sys.exit(1)
+
 
 def main():
 
