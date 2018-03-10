@@ -2,7 +2,7 @@
 
 import gzip
 
-from StringIO import StringIO
+from six import StringIO
 
 
 def get_free_port():
