@@ -9,13 +9,13 @@ python:
 env:
   - PYMONGO=2.8
   - PYMONGO=3.0
-  
+
 before_install:
  - "travis_retry sudo apt-get update -qq"
  - "travis_retry sudo apt-get install -y build-essential curl git ca-certificates language-pack-en python-dev"
  - sudo curl -k -O https://bootstrap.pypa.io/ez_setup.py && python ez_setup.py --insecure && rm -f ez_setup.py setuptools*zip
  - sudo curl -k -O https://bootstrap.pypa.io/get-pip.py && python get-pip.py && rm -f get-pip.py
- 
+
 install:
   - travis_retry pip install nose
   - travis_retry pip install pymongo==$PYMONGO
@@ -24,7 +24,7 @@ install:
 before_script:
   - sleep 5
   - mongod --version
-  
+
 script:
   - travis_retry nosetests -s -v mms_tests
 
