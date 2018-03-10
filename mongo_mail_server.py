@@ -15,7 +15,6 @@ import zlib
 import base64
 import datetime
 import logging
-import traceback
 import smtplib
 import uuid
 import hashlib
@@ -28,11 +27,9 @@ import errno
 from asynchat import find_prefix_at_end
 import atexit
 import os
-import signal
 
 from decouple import config as env_config
 
-import gevent
 from gevent import ssl
 from gevent import socket, Timeout
 from gevent.server import StreamServer
@@ -1384,7 +1381,7 @@ def options():
         type=int,
         help='SMTPD Data Size Limit (octets) - Zero for no limit.  Defaults to %(default)s')
 
-    server_args = parser.add_argument(
+    parser.add_argument(
         '--server',
         choices=SERVERS.keys(),
         default=env_config('MMS_SERVER', 'mongo-quarantine'),
@@ -1412,7 +1409,7 @@ def options():
         help='Mongod collection.  Defaults to %(default)s'
     )
 
-    allow_arg = parser.add_argument(
+    parser.add_argument(
         '--allow',
         dest='allow_hosts',
         metavar="path",
@@ -1421,7 +1418,7 @@ def options():
         help='Allow hosts'
     )
 
-    plugins = parser.add_argument(
+    parser.add_argument(
         '--plugin',
         dest='plugins',
         metavar="path",
