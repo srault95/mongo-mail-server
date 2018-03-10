@@ -1455,10 +1455,6 @@ def options():
     return kwargs
 
 
-def signal_server_stop(*args, **kwargs):
-    server.stop()
-
-
 def atexit_server_stop(server):
     server.stop()
 
