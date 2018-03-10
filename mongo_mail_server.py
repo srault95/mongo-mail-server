@@ -27,6 +27,10 @@ import errno
 from asynchat import find_prefix_at_end
 import atexit
 import os
+try:
+    import builtins
+except ImportError:
+    import __builtin__ as builtins
 
 from decouple import config as env_config
 
@@ -57,6 +61,10 @@ logger = logging.getLogger('mongo-mail-server')
 NEWLINE = '\n'
 EMPTYSTRING = ''
 COMMASPACE = ', '
+
+
+int_types = int,
+int_types += (builtins.long,) if hasattr(builtins, 'long') else ()
 
 
 class SMTPChannel(object):
@@ -403,7 +411,7 @@ class SMTPChannel(object):
                 # no terminator, collect it all
                 self.collect_incoming_data(self.ac_in_buffer)
                 self.ac_in_buffer = ''
-            elif isinstance(self.terminator, int) or isinstance(self.terminator, long):
+            elif isinstance(self.terminator, int_types):
                 # numeric terminator
                 n = self.terminator
                 if lb < n:
