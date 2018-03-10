@@ -93,7 +93,7 @@ class SMTPChannel(object):
         except socket.error as err:
             # a race condition  may occur if the other end is closing
             # before we can get the peername
-            logger.error(err)
+            logger.exception(err)
             self.conn.close()
             if err[0] != errno.ENOTCONN:
                 raise
@@ -520,7 +520,7 @@ def extract_real_recipients(data):
         getall = msg.get_all('X-Envelope-To', [])
         recipients = [r[1] for r in getaddresses(getall)]
     except Exception as err:
-        logger.error(str(err))
+        logger.exception(str(err))
     return recipients
 
 
@@ -615,7 +615,7 @@ class SMTPServer(StreamServer):
             except Exception as err:
                 logger.debug(err)
         except Exception as err:
-            logger.error(err)
+            logger.exception(err)
 
     # API for "doing something useful with the message"
     def process_message(self, peer, mailfrom, rcpttos, data, xforward):
@@ -761,7 +761,7 @@ class RecordPyMongoDBServer(SMTPServer):
             return True
 
         except Exception as err:
-            logger.error(str(err))
+            logger.exception(str(err))
 
         return False
 
@@ -838,7 +838,7 @@ class RecordPyMongoDBServer(SMTPServer):
             return msg
 
         except Exception as err:
-            logger.error(str(err))
+            logger.exception(str(err))
             return "400 Server Error"
 
 
@@ -860,7 +860,7 @@ class RecordPyMongoDBServerProxy(RecordPyMongoDBServer):
             return msg
 
         except Exception as err:
-            logger.error(str(err))
+            logger.exception(str(err))
             return "400 Server Error"
 
     def _deliver(self, mailfrom, rcpttos, data, xforward):
