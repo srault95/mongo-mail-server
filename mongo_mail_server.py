@@ -19,7 +19,10 @@ import traceback
 import smtplib
 import uuid
 import hashlib
-from UserDict import UserDict
+try:
+    from collections import UserDict
+except ImportError:
+    from UserDict import UserDict
 from ssl import CERT_NONE
 import errno
 from asynchat import find_prefix_at_end
