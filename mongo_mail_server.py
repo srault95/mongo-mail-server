@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 
 __VERSION__ = "0.1.1"
 
@@ -962,7 +962,7 @@ class RecordPyMongoDBServerProxy(RecordPyMongoDBServer):
 
         >>> fs = GridFS(db)
         >>> fs.list()
-        [u'77dd50277b8b6260c9bda483ab12fb2c25a1c94337978310b7e8546cdf63ebf2']
+        ['77dd50277b8b6260c9bda483ab12fb2c25a1c94337978310b7e8546cdf63ebf2']
 
         >>> msg_base64 = fs.get(doc['message']).read()
         >>> msg_string = zlib.decompress(base64.b64decode(msg_base64))

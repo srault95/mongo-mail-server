@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function, unicode_literals
+
 import gzip
 
 from six import StringIO
 
 
 def get_free_port():
-    u"""Récupère un port libre pour les tests et ferme la socket std"""
+    """Récupère un port libre pour les tests et ferme la socket std"""
     import socket
     tempsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     tempsock.bind(('localhost', 0))

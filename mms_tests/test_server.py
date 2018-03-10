@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function, unicode_literals
+
 from contextlib import contextmanager
 import os
 import smtplib
@@ -188,7 +190,7 @@ def test_send():
 
 
 def test_send_rcpt_not_fqdn():
-    u"""Not fqdn sender and recipient"""
+    """Not fqdn sender and recipient"""
 
     message = utils.message_from_string(MSG_RCPT_NOT_FQDN)
     server = _sendmail(message=message, mongo_settings=MONGODB_SETTINGS, debug=False)
@@ -199,7 +201,7 @@ def test_send_rcpt_not_fqdn():
 
 
 def test_send_convert_real_rcpt():
-    u"""Replace smtp rcpttos with X-Envelope-To field"""
+    """Replace smtp rcpttos with X-Envelope-To field"""
 
     message = utils.message_from_string(MSG_QUARANTINE_REAL_RCPT)
     server = _sendmail(message=message, mongo_settings=MONGODB_SETTINGS, debug=False, smtp_rcpt='quarantine@localhost.net', real_rcpt=True)
@@ -213,7 +215,7 @@ def test_send_convert_real_rcpt():
 
 
 def test_send_convert_real_rcpt_multi():
-    u"""Replace smtp rcpttos with X-Envelope-To field - multi real rcpt"""
+    """Replace smtp rcpttos with X-Envelope-To field - multi real rcpt"""
 
     message = utils.message_from_string(MSG_QUARANTINE_REAL_RCPT_MULTI)
     server = _sendmail(message=message, mongo_settings=MONGODB_SETTINGS, debug=False, smtp_rcpt='quarantine@localhost.net', real_rcpt=True)
