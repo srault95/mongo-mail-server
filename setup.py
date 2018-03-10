@@ -45,6 +45,7 @@ setup(
         'gevent>=1.0',
         'python-decouple',
         'pymongo>=2.8',
+        'six',
     ],
     setup_requires=[
         'nose>=1.0'

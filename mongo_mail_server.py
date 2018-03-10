@@ -18,19 +18,14 @@ import logging
 import smtplib
 import uuid
 import hashlib
-try:
-    from collections import UserDict
-except ImportError:
-    from UserDict import UserDict
 from ssl import CERT_NONE
 import errno
 from asynchat import find_prefix_at_end
 import atexit
 import os
-try:
-    import builtins
-except ImportError:
-    import __builtin__ as builtins
+
+import six
+from six.moves import UserDict
 
 from decouple import config as env_config
 
@@ -61,10 +56,6 @@ logger = logging.getLogger('mongo-mail-server')
 NEWLINE = '\n'
 EMPTYSTRING = ''
 COMMASPACE = ', '
-
-
-int_types = int,
-int_types += (builtins.long,) if hasattr(builtins, 'long') else ()
 
 
 class SMTPChannel(object):
@@ -411,7 +402,7 @@ class SMTPChannel(object):
                 # no terminator, collect it all
                 self.collect_incoming_data(self.ac_in_buffer)
                 self.ac_in_buffer = ''
-            elif isinstance(self.terminator, int_types):
+            elif isinstance(self.terminator, six.integer_types):
                 # numeric terminator
                 n = self.terminator
                 if lb < n:
