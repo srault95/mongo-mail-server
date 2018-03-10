@@ -105,7 +105,8 @@ class SMTPChannel(object):
     # Overrides base class for convenience
     def push(self, msg):
         logger.debug('PUSH %s' % msg)
-        self.conn.send(msg + '\r\n')
+        payload = (msg + '\r\n').encode('utf-8')
+        self.conn.send(payload)
 
     # Implementation of base class abstract method
     def collect_incoming_data(self, data):
@@ -380,7 +381,7 @@ class SMTPChannel(object):
 
     def handle_read(self):
         try:
-            data = self.conn.recv(self.ac_in_buffer_size)
+            data = self.conn.recv(self.ac_in_buffer_size).decode('ascii')
             if len(data) == 0:
                 # issues 2 TCP connect closed will send a 0 size pack
                 self.close_when_done()
@@ -493,11 +494,11 @@ def load_plugin(name, callable_name='apply'):
 
 
 def compress(data):
-    return base64.b64encode(zlib.compress(data))
+    return base64.b64encode(zlib.compress(data.encode('utf-8')))
 
 
 def uncompress(data):
-    return zlib.decompress(base64.b64decode(data))
+    return zlib.decompress(base64.b64decode(data)).decode('utf-8')
 
 
 def timestamp():
@@ -507,7 +508,7 @@ def timestamp():
 
 def generate_key():
     """Génère un ID unique de 64 caractères"""
-    new_uuid = str(uuid.uuid4())
+    new_uuid = str(uuid.uuid4()).encode('ascii')
     return hashlib.sha256(new_uuid).hexdigest()
 
 
