@@ -6,9 +6,8 @@ import smtplib
 from email.utils import getaddresses
 
 import gevent
-import pymongo
 
-from mongo_mail_server import RecordPyMongoDBServer, compress, uncompress, PYMONGO2
+from mongo_mail_server import RecordPyMongoDBServer, uncompress, PYMONGO2
 
 from . import utils
 
@@ -74,6 +73,7 @@ MONGODB_SETTINGS = {
 if PYMONGO2:
     MONGODB_SETTINGS['use_greenlets'] = True
 
+
 @contextmanager
 def smtp_server(host=None, port=None, mongo_settings=None, timeout=10, data_size_limit=0, **kwargs):
 
@@ -81,12 +81,13 @@ def smtp_server(host=None, port=None, mongo_settings=None, timeout=10, data_size
 
     client = MongoClient(**mongo_settings)
 
-    server = RecordPyMongoDBServer(localaddr=(host, port),
-                                 timeout=timeout,
-                                 data_size_limit=data_size_limit,
-                                 db=client[DB_NAME],
-                                 colname=COL_NAME,
-                                 **kwargs)
+    server = RecordPyMongoDBServer(
+        localaddr=(host, port),
+        timeout=timeout,
+        data_size_limit=data_size_limit,
+        db=client[DB_NAME],
+        colname=COL_NAME,
+        **kwargs)
 
     server.db.drop_collection(COL_NAME)
     server.db.drop_collection('fs.files')
@@ -99,12 +100,14 @@ def smtp_server(host=None, port=None, mongo_settings=None, timeout=10, data_size
     finally:
         server.stop()
 
+
 def smtp_client(host=None, port=None, debug=False):
     smtp = smtplib.SMTP(host=host, port=port)
     if debug:
         smtp.set_debuglevel(1)
     smtp.does_esmtp = 1
     return smtp
+
 
 def _sendmail(message=None, debug=False, timeout=10, mongo_settings=None, sleeping=None, smtp_rcpt=None, **kwargs):
 
@@ -145,7 +148,7 @@ def _sendmail(message=None, debug=False, timeout=10, mongo_settings=None, sleepi
         assert code == 250
 
         for recipient in recipients:
-            (code, msg) = s.docmd('RCPT TO:', smtplib.quoteaddr(recipient) )
+            (code, msg) = s.docmd('RCPT TO:', smtplib.quoteaddr(recipient))
             assert code == 250
 
         (code, msg) = s.data(message_string)
@@ -155,6 +158,7 @@ def _sendmail(message=None, debug=False, timeout=10, mongo_settings=None, sleepi
         assert code == 221
 
         return server
+
 
 def _mongodb_verify(message=None, col=None, fs=None, debug=False):
 
@@ -167,55 +171,60 @@ def _mongodb_verify(message=None, col=None, fs=None, debug=False):
     msg = utils.message_from_string(uncompress(fs.get(doc['message']).read()))
 
     if debug:
-        print ""
-        print "------------------------------------------------------------"
-        print message.as_string()
-        print "------------------------------------------------------------"
+        print("")
+        print("------------------------------------------------------------")
+        print(message.as_string())
+        print("------------------------------------------------------------")
 
     return doc, msg
+
 
 def test_send():
 
     message = utils.message_from_string(MSG1)
-    server = _sendmail(message=message, mongo_settings=MONGODB_SETTINGS ,debug=False)
+    server = _sendmail(message=message, mongo_settings=MONGODB_SETTINGS, debug=False)
     assert server.col.count() == 1
     doc, new_message = _mongodb_verify(message=message, col=server.col, fs=server.fs, debug=False)
+
 
 def test_send_rcpt_not_fqdn():
     u"""Not fqdn sender and recipient"""
 
     message = utils.message_from_string(MSG_RCPT_NOT_FQDN)
-    server = _sendmail(message=message, mongo_settings=MONGODB_SETTINGS ,debug=False)
+    server = _sendmail(message=message, mongo_settings=MONGODB_SETTINGS, debug=False)
     assert server.col.count() == 1
     doc, new_message = _mongodb_verify(message=message, col=server.col, fs=server.fs, debug=False)
     assert len(doc['rcpt']) == 1
     assert doc['rcpt'][0] == 'root'
 
+
 def test_send_convert_real_rcpt():
     u"""Replace smtp rcpttos with X-Envelope-To field"""
 
     message = utils.message_from_string(MSG_QUARANTINE_REAL_RCPT)
-    server = _sendmail(message=message, mongo_settings=MONGODB_SETTINGS ,debug=False, smtp_rcpt='quarantine@localhost.net', real_rcpt=True)
+    server = _sendmail(message=message, mongo_settings=MONGODB_SETTINGS, debug=False, smtp_rcpt='quarantine@localhost.net', real_rcpt=True)
     assert server.col.count() == 1
     doc, new_message = _mongodb_verify(message=message, col=server.col, fs=server.fs, debug=False)
     assert len(doc['rcpt']) == 1
     assert doc['rcpt'][0] == 'real-rcpt@example.net'
     header_mms_rcpt = new_message.get('X-MMS-RCPT', None)
-    assert not header_mms_rcpt is None
+    assert header_mms_rcpt is not None
     assert header_mms_rcpt == "<quarantine@localhost.net>"
+
 
 def test_send_convert_real_rcpt_multi():
     u"""Replace smtp rcpttos with X-Envelope-To field - multi real rcpt"""
 
     message = utils.message_from_string(MSG_QUARANTINE_REAL_RCPT_MULTI)
-    server = _sendmail(message=message, mongo_settings=MONGODB_SETTINGS ,debug=False, smtp_rcpt='quarantine@localhost.net', real_rcpt=True)
+    server = _sendmail(message=message, mongo_settings=MONGODB_SETTINGS, debug=False, smtp_rcpt='quarantine@localhost.net', real_rcpt=True)
     assert server.col.count() == 1
     doc, new_message = _mongodb_verify(message=message, col=server.col, fs=server.fs, debug=False)
     assert len(doc['rcpt']) == 2
     assert doc['rcpt'][0] == 'real-rcpt1@example.net'
     header_mms_rcpt = new_message.get('X-MMS-RCPT', None)
-    assert not header_mms_rcpt is None
+    assert header_mms_rcpt is not None
     assert header_mms_rcpt == "<quarantine@localhost.net>"
+
 
 def test_send_with_timeout():
 
@@ -223,10 +232,11 @@ def test_send_with_timeout():
         _sendmail(sleeping=1.2, timeout=2, mongo_settings=MONGODB_SETTINGS)
     except smtplib.SMTPServerDisconnected:
         pass
-    except Exception, err:
+    except Exception as err:
         pass
     else:
         assert False, "Exception not raised"
+
 
 def test_implemented_commands():
 
@@ -234,7 +244,7 @@ def test_implemented_commands():
 
     with smtp_server(host=host, port=port,
                      mongo_settings=MONGODB_SETTINGS,
-                     data_size_limit=100) as server:
+                     data_size_limit=100):
 
         s = smtp_client(host, port, debug=False)
 
@@ -242,9 +252,3 @@ def test_implemented_commands():
 
         for feature in ["xforward", "size", "help"]:
             assert feature in s.esmtp_features
-
-#def test_limit_size():
-#    assert False, "Not Implemented"
-
-
-
