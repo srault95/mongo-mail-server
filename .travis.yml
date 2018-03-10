@@ -28,7 +28,3 @@ before_script:
 
 script:
   - travis_retry nosetests -s -v mms_tests
-
-branches:
-  only:
-    - master
