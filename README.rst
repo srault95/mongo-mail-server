@@ -701,11 +701,11 @@ To contribute to the project, fork it on GitHub and send a pull request, all con
     :target: https://pypi.python.org/pypi/mongo-mail-server
     :alt: License
 
-.. |pypi py_versions| image:: https://pypip.in/py_versions/mongo-mail-server/badge.svg
+.. |pypi py_versions| image:: https://img.shields.io/pypi/pyversions/mongo-mail-server.svg
     :target: https://pypi.python.org/pypi/mongo-mail-server
     :alt: Supported Python versions
 
-.. |pypi dev_status| image:: https://pypip.in/status/mongo-mail-server/badge.svg
+.. |pypi dev_status| image:: https://img.shields.io/pypi/status/mongo-mail-server.svg
     :target: https://pypi.python.org/pypi/mongo-mail-server
     :alt: Development Status        
     
