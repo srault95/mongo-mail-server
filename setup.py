@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
 
-from setuptools import setup, find_packages
+from setuptools import setup
 
 CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
+
 
 def get_readme():
     readme_path = os.path.abspath(os.path.join(CURRENT_DIR, 'README.rst'))
@@ -13,6 +13,7 @@ def get_readme():
         with open(readme_path) as fp:
             return fp.read()
     return ""
+
 
 setup(
     name='mongo-mail-server',
@@ -30,12 +31,13 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
         'License :: OSI Approved :: BSD License',
         'Intended Audience :: Developers',
         'Intended Audience :: System Administrators'
     ],
-    
-    url='https://github.com/radical-software/mongo-mail-server', 
+
+    url='https://github.com/radical-software/mongo-mail-server',
     include_package_data=True,
     zip_safe=False,
     scripts=['mongo_mail_server.py'],
@@ -44,6 +46,7 @@ setup(
         'gevent>=1.0',
         'python-decouple',
         'pymongo>=2.8',
+        'six',
     ],
     setup_requires=[
         'nose>=1.0'
@@ -58,5 +61,5 @@ setup(
             'mongo-mail-server = mongo_mail_server:main',
             'mongo-mail-reader = mongo_mail_server:main_reader',
         ],
-    },    
+    },
 )
