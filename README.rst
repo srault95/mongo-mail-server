@@ -6,12 +6,6 @@ Mongo Mail Server
 
 |Build Status| |pypi downloads| |pypi version| |pypi licence| |requires status|
 
-**Demo:**
-
-- URL: http://188.165.254.60:8083
-- Login: admin@example.net
-- Password: password
-
 **Features:**
 
 - SMTP Server high performance with Gevent Coroutine_ ( fork of Gsmtpd_ )
@@ -273,7 +267,7 @@ Build Mongo Mail Server image
 
 .. code:: bash
 
-    $ git clone https://github.com/radical-software/mongo-mail-server.git
+    $ git clone https://github.com/sraul95/mongo-mail-server.git
     
     $ cd mongo-mail-server && docker build -t mongo-mail-server .
     
@@ -685,8 +679,8 @@ To contribute to the project, fork it on GitHub and send a pull request, all con
 .. _SpamAssassin: http://spamassassin.org/
 .. _Coroutine: http://en.wikipedia.org/wiki/Coroutine
  
-.. |Build Status| image:: https://travis-ci.org/radical-software/mongo-mail-server.svg?branch=master
-   :target: https://travis-ci.org/radical-software/mongo-mail-server
+.. |Build Status| image:: https://travis-ci.org/srault95/mongo-mail-server.svg?branch=master
+   :target: https://travis-ci.org/srault95/mongo-mail-server
    :alt: Travis Build Status
 
 .. |pypi downloads| image:: https://img.shields.io/pypi/dm/mongo-mail-server.svg
@@ -709,6 +703,8 @@ To contribute to the project, fork it on GitHub and send a pull request, all con
     :target: https://pypi.python.org/pypi/mongo-mail-server
     :alt: Development Status        
     
-.. |requires status| image:: https://requires.io/github/radical-software/mongo-mail-server/requirements.svg?branch=master
-     :target: https://requires.io/github/radical-software/mongo-mail-server/requirements/?branch=master
+.. |requires status| image:: https://img.shields.io/requires/github/srault95/mongo-mail-server.svg
+     :target: https://requires.io/github/srault95/mongo-mail-server/requirements/
      :alt: Requirements Status    
+     
+     
